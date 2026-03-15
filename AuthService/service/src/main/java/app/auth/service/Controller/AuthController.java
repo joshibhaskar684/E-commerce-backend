@@ -76,7 +76,7 @@ public class AuthController {
                 .ok()
 //                .header(HttpHeaders.SET_COOKIE,cookie.toString())
                 .header(HttpHeaders.SET_COOKIE,cookieuser.toString())
-                .body(new ResponseDto("","Login Sucessfull !"));
+                .body(new ResponseDto(token,"Login Sucessfull !"));
 
     }
 

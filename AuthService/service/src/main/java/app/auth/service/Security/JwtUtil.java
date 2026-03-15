@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -24,50 +25,41 @@ public class JwtUtil {
     private PrivateKey privateKey;
     private PublicKey publicKey;
 
+    @Value("${RS256_PRIVATE_KEY}")
+    private String privateKeyStr;
+
+    @Value("${RS256_PUBLIC_KEY}")
+    private String publicKeyStr;
+
     @PostConstruct
     public void init() {
         try {
-            // Load keys from resources
-            privateKey = loadPrivateKey("Keys/private_pkcs8.key");
-            publicKey = loadPublicKey("Keys/public.key");
+            privateKey = loadPrivateKeyFromBase64(privateKeyStr);
+            publicKey = loadPublicKeyFromBase64(publicKeyStr);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load JWT keys", e);
         }
     }
-    private PrivateKey loadPrivateKey(String path) throws Exception {
-        ClassPathResource resource = new ClassPathResource(path);
-        try (InputStream is = resource.getInputStream()) {
-            // Read file content as string
-            String pem = new String(is.readAllBytes());
-            // Remove any header/footer lines and all whitespace
-            pem = pem.replaceAll("-----BEGIN (.*) PRIVATE KEY-----", "")
-                    .replaceAll("-----END (.*) PRIVATE KEY-----", "")
-                    .replaceAll("\\s+", "");
-            // Decode base64
-            byte[] decoded = Base64.getDecoder().decode(pem);
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
-            return KeyFactory.getInstance("RSA").generatePrivate(spec);
-        }
+
+    private PrivateKey loadPrivateKeyFromBase64(String base64Key) throws Exception {
+        byte[] decoded = Base64.getDecoder().decode(base64Key);
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
+        return KeyFactory.getInstance("RSA").generatePrivate(spec);
     }
 
-    private PublicKey loadPublicKey(String path) throws Exception {
-        ClassPathResource resource = new ClassPathResource(path);
-        try (InputStream is = resource.getInputStream()) {
-            String pem = new String(is.readAllBytes());
-            pem = pem.replaceAll("-----BEGIN (.*) PUBLIC KEY-----", "")
-                    .replaceAll("-----END (.*) PUBLIC KEY-----", "")
-                    .replaceAll("\\s+", "");
-            byte[] decoded = Base64.getDecoder().decode(pem);
-            X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
-            return KeyFactory.getInstance("RSA").generatePublic(spec);
-        }
+    private PublicKey loadPublicKeyFromBase64(String base64Key) throws Exception {
+        byte[] decoded = Base64.getDecoder().decode(base64Key);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
+        return KeyFactory.getInstance("RSA").generatePublic(spec);
     }
+
+    // JWT methods remain unchanged
     public String generateToken(String username, List<String> roles){
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*24*7))
-                .claim("roles",roles)
+                .claim("roles", roles)
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
@@ -77,8 +69,8 @@ public class JwtUtil {
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*24*7))
-                .claim("roles",roles)
-                .claim("otpVerified",otpVerified)
+                .claim("roles", roles)
+                .claim("otpVerified", otpVerified)
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
