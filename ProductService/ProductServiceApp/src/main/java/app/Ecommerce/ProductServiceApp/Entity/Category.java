@@ -19,10 +19,6 @@ public class Category {
 
     private String name;
 
-    // null for top-level categories
     private String parentId;
 
-    // Optional: you can build hierarchy in backend
-//    private List<Category> subCategories;
-    // Getters and Setters
 }

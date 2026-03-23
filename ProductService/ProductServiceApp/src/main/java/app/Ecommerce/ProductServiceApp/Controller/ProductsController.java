@@ -18,8 +18,8 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<Product>createNewProduct(@RequestBody Product product){
-       return productsService.createNewProduct(product);
+    public ResponseEntity<Product>createNewProduct(@RequestBody Product product,@RequestBody String category ){
+       return productsService.createNewProduct(product,category);
     }
     @GetMapping
     public ResponseEntity<List<Product>>getAllProducts(){

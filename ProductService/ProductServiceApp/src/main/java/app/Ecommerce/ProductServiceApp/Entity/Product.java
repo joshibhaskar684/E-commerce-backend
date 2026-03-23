@@ -24,7 +24,7 @@ public class Product {
     private String brand;
     private String name;
     private String categoryId;
-    private String subCategory;
+//    private String subCategory;
     private List<String> images;
     private String color;
     private Double price;
@@ -35,6 +35,9 @@ public class Product {
     private Integer returnDay;
 
     private String description;
+
+    private List<String> categoryPath;
+
 
     // Dynamic key-value pair
     private Map<String, Object> specifications;
