@@ -25,6 +25,7 @@ public class ProductsService {
 
     public ResponseEntity<Product> createNewProduct(Product product, String category){
         Category category1= categoryRepository.findById(category).orElseThrow(()->new RuntimeException("Category with id doesnt exist"));
+
         return new ResponseEntity<>(productsRepository.save(product), HttpStatus.OK);
     }
     public ResponseEntity<List<Product>> getAllProducts(){
