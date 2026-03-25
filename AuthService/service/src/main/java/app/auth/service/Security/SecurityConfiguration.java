@@ -51,9 +51,8 @@ private CustomOAuth2UserService customOAuth2UserService;
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/login","/oauth2/**",
-                                "/swagger-ui.html","/api/**", "/auth/**").permitAll()
+                                "/swagger-ui/**","/oauth2/**",
+                                "/swagger-ui.html", "/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth->
@@ -83,7 +82,7 @@ private CustomOAuth2UserService customOAuth2UserService;
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:8080","https://www.vhbuyio.site","http://localhost:3001","https://store.vhbuyio.site","https://vhbuyio.site","https://academy.vhbuyio.site","https://careers.vhbuyio.site","https://templates.vhbuyio.site"));
+        corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:1000","http://localhost:8080","https://www.vhbuyio.site","http://localhost:3001","https://store.vhbuyio.site","https://vhbuyio.site","https://academy.vhbuyio.site","https://careers.vhbuyio.site","https://templates.vhbuyio.site"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "OPTIONS"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
