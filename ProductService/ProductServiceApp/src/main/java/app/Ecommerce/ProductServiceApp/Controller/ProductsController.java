@@ -3,6 +3,7 @@ package app.Ecommerce.ProductServiceApp.Controller;
 
 import app.Ecommerce.ProductServiceApp.Entity.Product;
 import app.Ecommerce.ProductServiceApp.Service.ProductsService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,11 @@ public class ProductsController {
 
     public ProductsController(ProductsService productsService) {
         this.productsService = productsService;
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String>createNewProduct(){
+        return new ResponseEntity<>("done ok ", HttpStatus.OK);
     }
 
     @PostMapping

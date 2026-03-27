@@ -1,0 +1,20 @@
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # automatically routes services registered in Eureka
+          lower-case-service-id: true
+
+      globalcors:
+        corsConfigurations:
+          '[/**]': # apply to all routes
+            allowedOrigins: "http://localhost:3000" # your frontend
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true

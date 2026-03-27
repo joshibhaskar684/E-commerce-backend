@@ -78,17 +78,17 @@ private CustomOAuth2UserService customOAuth2UserService;
     }
 
     // ✅ Proper CorsConfigurationSource bean
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowCredentials(true);
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:1000","http://localhost:8080","https://www.vhbuyio.site","http://localhost:3001","https://store.vhbuyio.site","https://vhbuyio.site","https://academy.vhbuyio.site","https://careers.vhbuyio.site","https://templates.vhbuyio.site"));
-        corsConfiguration.setAllowedHeaders(List.of("*"));
-        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "OPTIONS"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration corsConfiguration = new CorsConfiguration();
+//        corsConfiguration.setAllowCredentials(true);
+//        corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:8085","http://localhost:1000","http://localhost:8080","https://www.vhbuyio.site","http://localhost:3001","https://store.vhbuyio.site","https://vhbuyio.site","https://academy.vhbuyio.site","https://careers.vhbuyio.site","https://templates.vhbuyio.site"));
+//        corsConfiguration.setAllowedHeaders(List.of("*"));
+//        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "OPTIONS"));
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", corsConfiguration);
+//        return source;
+//    }
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder(12);

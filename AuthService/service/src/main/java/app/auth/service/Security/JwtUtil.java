@@ -25,10 +25,10 @@ public class JwtUtil {
     private PrivateKey privateKey;
     private PublicKey publicKey;
 
-    @Value("${RS256_PRIVATE_KEY}")
+    @Value("${private_key}")
     private String privateKeyStr;
 
-    @Value("${RS256_PUBLIC_KEY}")
+    @Value("${public_key}")
     private String publicKeyStr;
 
     @PostConstruct
