@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @Document(collection = "categories")
 public class Category {
-    
+
     @Id
     private String id;
 
