@@ -1,5 +1,8 @@
 package app.Ecommerce.ProductServiceApp.Entity;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,15 +25,18 @@ public class Product {
     @Id
     private String id;
     private String brand;
+    @NotNull
     private String name;
+    @NotBlank
     private String categoryId;
 //    private String subCategory;
     private List<String> images;
     private String color;
+    @Positive
     private Double price;
+    @Positive
     private Double originalPrice;
-    private String store;
-    private Integer discount;
+    private String storeId;
     private Integer quantity;
     private Integer returnDay;
 

@@ -24,13 +24,14 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<Product>createNewProduct(@RequestBody Product product,@RequestBody String category ){
-       return productsService.createNewProduct(product,category);
+    public ResponseEntity<Product>createNewProduct(@RequestBody Product product ){
+       return productsService.createNewProduct(product);
     }
     @GetMapping
     public ResponseEntity<List<Product>>getAllProducts(){
         return productsService.getAllProducts();
     }
+
     @GetMapping("/{productId}")
     public ResponseEntity<Product>getProductDetailById(@PathVariable String productId){
         return productsService.getProductDetailById(productId);

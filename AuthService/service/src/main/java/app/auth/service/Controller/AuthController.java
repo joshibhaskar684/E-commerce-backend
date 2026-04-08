@@ -57,7 +57,7 @@ public class AuthController {
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
 //        ResponseCookie cookie = ResponseCookie.from("token", token)
-//                .domain(".vhbuyio.site")
+//
 //                .httpOnly(true)           // JavaScript cannot read the cookie
 //                .secure(true)            // true in production HTTPS
 //                .path("/")
@@ -87,7 +87,7 @@ public class AuthController {
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
         ResponseCookie cookie = ResponseCookie.from("token", token)
-                .domain(".vhbuyio.site")
+
                 .httpOnly(true)           // JavaScript cannot read the cookie
                 .secure(true)            // true in production HTTPS
                 .path("/")
@@ -135,14 +135,14 @@ public class AuthController {
 
     }
 
-    @PostMapping("/student-login")
-    public ResponseEntity<ResponseDto>loginStudent(@RequestBody LoginDto loginDto) throws Exception {
+    @PostMapping("/seller-login")
+    public ResponseEntity<ResponseDto>loginSeller(@RequestBody LoginDto loginDto) throws Exception {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
         UserDetailsEntity admin=myUserServices.findDetailsByJwt(token);
-        if (!"STUDENT".equals(admin.getRole())) {
+        if (!"SELLER".equals(admin.getRole())) {
             return new ResponseEntity<ResponseDto>(new ResponseDto(token, "Student Doesn't exist"), HttpStatus.CONFLICT);
         }
 
