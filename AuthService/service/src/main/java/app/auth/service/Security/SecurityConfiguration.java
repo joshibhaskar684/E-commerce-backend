@@ -51,7 +51,7 @@ private CustomOAuth2UserService customOAuth2UserService;
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/v3/api-docs/**",
-                                "/swagger-ui/**","/oauth2/**",
+                                "/swagger-ui/**","/oauth2/**","/error",
                                 "/swagger-ui.html", "/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )

@@ -39,6 +39,83 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }
+
+    @PostMapping("/login/verify")
+    public ResponseEntity<ResponseDto>VerifyEmail(@RequestBody LoginDto loginDto){
+        Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        ResponseCookie cookieuser = ResponseCookie.from("verifyToken", token)
+         .httpOnly(false)           // JavaScript cannot read the cookie
+                .secure(true)            // true in production HTTPS
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7 days
+                .sameSite("None")     //None  for prod  // mitigate CSRF
+                .build();
+        return ResponseEntity
+                .ok()
+           .header(HttpHeaders.SET_COOKIE,cookieuser.toString())
+                .body(new ResponseDto("","Verification Sucessfull !"));
+
+    }
+    @PostMapping("/login/seller")
+    public ResponseEntity<ResponseDto>LoginSeller(@RequestBody LoginDto loginDto) throws Exception {
+        Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+         if(roles.contains("ROLE_SELLER")||roles.contains("ROLE_ADMIN")) {
+
+             String token = jwtUtil.generateToken(loginDto.getEmail(), roles);
+
+             ResponseCookie cookieuser = ResponseCookie.from("sellerToken", token)
+                     .secure(true)            // true in production HTTPS
+                     .path("/")
+                     .maxAge(7 * 24 * 60 * 60) // 7 days
+                     .sameSite("None")     //None  for prod  // mitigate CSRF
+                     .build();
+             return ResponseEntity
+                     .ok()
+                     .header(HttpHeaders.SET_COOKIE, cookieuser.toString())
+                     .body(new ResponseDto("", "Seller Login Sucessfull !"));
+
+         }
+        return ResponseEntity
+                .badRequest()
+                .body(new ResponseDto("","Seller Login Failed  !"));
+
+    }
+    @PostMapping("/login/admin")
+    public ResponseEntity<ResponseDto>LoginAdmin(@RequestBody LoginDto loginDto) throws Exception {
+        Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        if(!roles.contains("ROLE_ADMIN")){
+            return ResponseEntity
+                    .badRequest()
+                    .body(new ResponseDto("","Admin Login Failed  !"));
+        }
+        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+
+        ResponseCookie cookieuser = ResponseCookie.from("adminToken", token)
+//                .httpOnly(false)           // JavaScript cannot read the cookie
+//                .secure(true)            // true in production HTTPS
+//                .path("/")
+//                .maxAge(7 * 24 * 60 * 60) // 7 days
+//                .sameSite("None")       // mitigate CSRF
+//                .build();
+                .secure(true)            // true in production HTTPS
+                .path("/")
+                 .sameSite("None")     //None  for prod  // mitigate CSRF
+                .build();
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE,cookieuser.toString())
+                .body(new ResponseDto("","Admin Login Sucessfull !"));
+
+    }
+
+
     @GetMapping("/user/profile")
     public ResponseEntity<Map<String,String>>findUserByJwtMap(@RequestHeader("Authorization") String authHeader) throws Exception {
         String token=authHeader.substring(7);

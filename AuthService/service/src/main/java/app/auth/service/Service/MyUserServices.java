@@ -55,7 +55,16 @@ public class MyUserServices implements UserDetailsService {
 
         return new ResponseEntity<>(userdata,HttpStatus.OK);
     }
+    public String changeRoleToSeller(String email){
+        UserDetailsEntity seller=usersRepository.findByEmail(email).get();
+        if (seller.getRole().equals("ADMIN")){
+            return "Sucess";
+        }
+        seller.setRole("SELLER");
+        usersRepository.save(seller);
+        return "Role Changed to Seller  Sucess";
 
+    }
 //
     public ResponseEntity<Signupdto>findUserByJwt(String token) throws Exception{
         String email=jwtUtil.extractUsername(token);

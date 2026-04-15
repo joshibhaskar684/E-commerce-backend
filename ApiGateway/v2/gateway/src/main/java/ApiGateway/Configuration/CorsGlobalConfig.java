@@ -1,9 +1,11 @@
 package ApiGateway.Configuration;
 
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -20,7 +22,23 @@ public class CorsGlobalConfig {
                         .uri("lb://PRODUCTS-SERVICE"))// Eureka + load-balanced
                 .build();
     }
+    @Bean
+    public GlobalFilter forwardAuthHeader() {
+        return (exchange, chain) -> {
+            String auth = exchange.getRequest().getHeaders().getFirst("Authorization");
 
+            if (auth != null) {
+                ServerHttpRequest request = exchange.getRequest()
+                        .mutate()
+                        .header("Authorization", auth)
+                        .build();
+
+                return chain.filter(exchange.mutate().request(request).build());
+            }
+
+            return chain.filter(exchange);
+        };
+    }
 
     @Bean
     public CorsWebFilter corsWebFilter() {
@@ -29,7 +47,7 @@ public class CorsGlobalConfig {
         config.addAllowedOrigin("http://localhost:3000"); // frontend origin
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-
+        config.addExposedHeader("Set-Cookie");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 

@@ -5,7 +5,6 @@ spring:
         locator:
           enabled: true  # automatically routes services registered in Eureka
           lower-case-service-id: true
-
       globalcors:
         corsConfigurations:
           '[/**]': # apply to all routes
@@ -18,3 +17,7 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
             allowCredentials: true
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+        - PreserveHostHeader

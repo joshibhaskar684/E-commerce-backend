@@ -25,6 +25,11 @@ public class Seller {
     @JoinColumn(name = "user_id", nullable = false)
     private UserDetailsEntity user;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_data")
+    private UserDetailsEntity admin;
+
+    @Column(name = "business_owner_name")
     private String businessName;
 
     private String mobileNo;
@@ -50,6 +55,7 @@ public class Seller {
 
     private Status status;
 
+    @Lob
     private String rejectionReason;
 
     @CreationTimestamp
