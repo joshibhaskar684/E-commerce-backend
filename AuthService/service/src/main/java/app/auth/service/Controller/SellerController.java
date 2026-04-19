@@ -3,6 +3,7 @@ package app.auth.service.Controller;
 
 import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
+import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
 import app.auth.service.Service.SellerService;
 import org.springframework.data.domain.Page;
@@ -20,7 +21,11 @@ public class SellerController {
         this.sellerService = sellerService;
     }
 
-
+@GetMapping("/seller/profile")
+public ResponseEntity<SellerProfileDto> getSellerProfile(@RequestHeader("Authorization") String authHeader) throws Exception {
+    String token=authHeader.substring(7);
+return new ResponseEntity<>(sellerService.getSellerProfile(token),HttpStatus.OK);
+}
     @GetMapping("/seller/check/seller/{id}")
     public ResponseEntity<Seller> findSellerById(@PathVariable Long id){
         return new ResponseEntity<>( sellerService.getSellerDataByid(id),HttpStatus.OK);

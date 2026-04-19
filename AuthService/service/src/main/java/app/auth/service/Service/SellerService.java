@@ -2,6 +2,7 @@ package app.auth.service.Service;
 
 import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
+import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
 import app.auth.service.Entity.UserDetailsEntity;
 import app.auth.service.Enums.Status;
@@ -32,7 +33,11 @@ public class SellerService {
         this.myUserServices = myUserServices;
         this.sellerMapper = sellerMapper;
     }
-
+    public SellerProfileDto getSellerProfile(String token) throws Exception {
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+        Seller seller=sellerRepository.findByUser(userDetails).orElseThrow(()->new RuntimeException("seller not found "));
+        return sellerMapper.convertInToSellerProfileDto(seller);
+    }
     public Seller getSellerDataByid(Long id ){
         if(!sellerRepository.existsById(id)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Seller Not Found");

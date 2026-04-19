@@ -2,6 +2,7 @@ package app.auth.service.Service;
 
 import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
+import app.auth.service.DTO.ShopDetailsDto;
 import app.auth.service.DTO.ShopDto;
 import app.auth.service.Entity.Seller;
 import app.auth.service.Entity.Shop;
@@ -34,6 +35,8 @@ public class ShopService {
         this.shopMapper = shopMapper;
     }
 
+
+
     public Page<ShopDto> getUnapprovedSellerList(Integer pageno, Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
         Page<Shop> shopsPage=shopRepository.findAllByStatus(Status.PENDING,pageable);
@@ -51,7 +54,6 @@ public class ShopService {
         Pageable pageable= PageRequest.of(pageno,pagesize);
         Page<Shop> shopsPage=shopRepository.findAllByStatus(Status.REJECTED,pageable);
         Page<ShopDto> sellerDtos = shopsPage.map(entity -> shopMapper.convertToShopDto(entity));
-
         return sellerDtos;
     }
     public Page<ShopDto> getSuspendedSellerList(Integer pageno,Integer pagesize){
@@ -69,10 +71,10 @@ public class ShopService {
 
         Seller seller=sellerRepository.findByUser(userDetails).orElseThrow(()->new RuntimeException("Seller Not Found"));
        List< Shop> shop1=shopRepository.findBySeller(seller);
-        if(!shop1.isEmpty()){
+        if(shop1.size()>1){
             throw new RuntimeException("Shop Already Exist");
         }
-
+        shop.setStatus(Status.PENDING);
         shop.setSeller(seller);
         shopRepository.save(shop);
         return "Shop Created Sucessfully";
@@ -80,6 +82,7 @@ public class ShopService {
     public String applyForShop (String token , Shop shop) throws Exception {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
         Seller seller=sellerRepository.findByUser(userDetails).get();
+        shop.setStatus(Status.PENDING);
         shop.setSeller(seller);
         shopRepository.save(shop);
         return "Application has been Submitted Sucessfully";
@@ -108,6 +111,7 @@ public class ShopService {
         Shop shop=shopRepository.getReferenceById(id);
         shop.setStatus(Status.APPROVED);
         shop.setAdmin(userDetails);
+        shopRepository.save(shop);
         return "Shop Approved Sucessfully";
     }
 
@@ -118,14 +122,32 @@ public class ShopService {
         shop.setStatus(Status.REJECTED);
         shop.setAdmin(userDetails);
         shop.setRejectionReason(rejectRequest.getReason());
+        shopRepository.save(shop);
         return "Shop Rejected Sucessfully";
     }
 
 
-    public Shop getShopDataByid(Long id) {
+    public ShopDetailsDto getShopDataByid(Long id) {
         if(!shopRepository.existsById(id)){
             throw new RuntimeException("Shop Not Found");
         }
-        return shopRepository.getReferenceById(id);
+        return shopMapper.convertShopToShopDetailDTO(shopRepository.getReferenceById(id));
     }
+    public List<ShopDto> getShopListBasic(String token) throws Exception {
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+        Seller seller=sellerRepository.findByUser(userDetails).get();
+        List<Shop> shops=shopRepository.findBySeller(seller);
+        return shops.stream().map(entity -> shopMapper.convertToShopDto(entity)).toList();
+    }
+
+    public String suspendShop(String token, Long id, RejectRequest rejectRequest) throws Exception {
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+        Shop shop=shopRepository.getReferenceById(id);
+        shop.setStatus(Status.SUSPENDED);
+        shop.setAdmin(userDetails);
+        shop.setRejectionReason(rejectRequest.getReason());
+        shopRepository.save(shop);
+        return "Shop Suspended Sucessfully";
+    }
+
 }
