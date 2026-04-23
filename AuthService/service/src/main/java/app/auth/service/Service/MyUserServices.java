@@ -4,6 +4,7 @@ import app.auth.service.DTO.AdminDTO;
 import app.auth.service.DTO.ResponseDto;
 import app.auth.service.DTO.Signupdto;
 import app.auth.service.Entity.UserDetailsEntity;
+import app.auth.service.Enums.Status;
 import app.auth.service.Repository.UsersRepository;
 import app.auth.service.Security.JwtUtil;
 import app.auth.service.Security.UserPrincipal;
@@ -32,6 +33,22 @@ public class MyUserServices implements UserDetailsService {
         this.usersRepository = usersRepository;
         this.jwtUtil = jwtUtil;
         this.emailServices = emailServices;
+    }
+
+
+    public Map<String ,String> totalUsersCount(){
+        Map<String, String> totalUser = new HashMap<>();
+
+        long totalAdminPresent = usersRepository.countByRole("ADMIN");
+        totalUser.put("totalAdmin", String.valueOf(totalAdminPresent));
+
+        long totalUsersPresent = usersRepository.countByRole("USER");
+        totalUser.put("totalUsers", String.valueOf(totalUsersPresent));
+
+        long totalSellerPresent = usersRepository.countByRole("SELLER");
+        totalUser.put("totalSeller", String.valueOf(totalSellerPresent));
+
+        return totalUser;
     }
 
     public String generateOtp() {

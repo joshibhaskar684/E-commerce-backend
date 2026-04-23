@@ -17,7 +17,14 @@ public interface ShopRepository extends JpaRepository<Shop,Long> {
 
     List<Shop> findBySeller(Seller seller);
 
-    Optional<Shop>findBySeller(UserDetailsEntity user);
+//    Optional<Shop>findBySeller(UserDetailsEntity user);
 
     Page<Shop> findAllByStatus(Status status, Pageable pageable);
+
+    List<Shop> findAllByStatus(Status status);
+
+    long countByStatus(Status status);
+
+    long countByStatusAndSeller(Status status,Seller seller);
+
 }

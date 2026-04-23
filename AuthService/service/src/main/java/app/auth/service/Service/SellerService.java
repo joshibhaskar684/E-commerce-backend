@@ -4,6 +4,7 @@ import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
+import app.auth.service.Entity.Shop;
 import app.auth.service.Entity.UserDetailsEntity;
 import app.auth.service.Enums.Status;
 import app.auth.service.Exceptions.ResourceAlreadyExistsException;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -33,6 +35,20 @@ public class SellerService {
         this.myUserServices = myUserServices;
         this.sellerMapper = sellerMapper;
     }
+
+
+
+    public String suspendSeller(String token, Long id, RejectRequest rejectRequest) throws Exception {
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+        Seller shop=sellerRepository.getReferenceById(id);
+        shop.setStatus(Status.SUSPENDED);
+        shop.setAdmin(userDetails);
+        shop.getUser().setRole("USER");
+        shop.setRejectionReason(rejectRequest.getReason());
+        sellerRepository.save(shop);
+        return "Seller Suspended Sucessfully";
+    }
+
     public SellerProfileDto getSellerProfile(String token) throws Exception {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
         Seller seller=sellerRepository.findByUser(userDetails).orElseThrow(()->new RuntimeException("seller not found "));
@@ -65,15 +81,25 @@ public class SellerService {
 
     public String CreateSeller(Seller seller, String token) throws Exception {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+
         if (sellerRepository.findByUser(userDetails).isPresent()) {
             throw new ResourceAlreadyExistsException("Seller already exists");
         }
+
+        if(userDetails.getRole().equals("ADMIN")){
+            seller.setStatus(Status.APPROVED);
+        }else{
         seller.setStatus(Status.PENDING);
+        }
         seller.setUser(userDetails);
         sellerRepository.save(seller);
 
         return "Seller Registered Sucessfully";
+
     }
+
+
+
 
     public Page<SellerDto> getUnapprovedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
@@ -82,6 +108,9 @@ public class SellerService {
 
         return sellerDtos;
     }
+
+
+
     public Page<SellerDto> getApprovedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
         Page<Seller> sellerPage=sellerRepository.findAllByStatus(Status.APPROVED,pageable);
@@ -89,6 +118,8 @@ public class SellerService {
 
         return sellerDtos;
     }
+
+
     public Page<SellerDto> getRejectedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
         Page<Seller> sellerPage=sellerRepository.findAllByStatus(Status.REJECTED,pageable);
@@ -96,6 +127,9 @@ public class SellerService {
 
         return sellerDtos;
     }
+
+
+
     public Page<SellerDto> getSuspendedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
         Page<Seller> sellerPage=sellerRepository.findAllByStatus(Status.SUSPENDED,pageable);
@@ -103,6 +137,8 @@ public class SellerService {
 
         return sellerDtos;
     }
+
+
 
     public String rejectSeller(Long id, String token, RejectRequest rejectRequest) throws Exception {
         UserDetailsEntity admin=myUserServices.findDetailsByJwt(token);
@@ -125,6 +161,53 @@ public class SellerService {
        return "Seller Approved Sucessfully ";
 
     }
+
+    public Map<String, String> totalSellerCount() {
+
+        Map<String, String> totalsellers = new HashMap<>();
+
+        totalsellers.put("totalApprovedSeller",
+                String.valueOf(sellerRepository.countByStatus(Status.APPROVED)));
+
+        totalsellers.put("totalRejectedSeller",
+                String.valueOf(sellerRepository.countByStatus(Status.REJECTED)));
+
+        totalsellers.put("totalUnApprovedseller",
+                String.valueOf(sellerRepository.countByStatus(Status.PENDING)));
+
+        totalsellers.put("totalSuspendedSeller",
+                String.valueOf(sellerRepository.countByStatus(Status.SUSPENDED)));
+
+        totalsellers.put("totalInActiveSeller",
+                String.valueOf(sellerRepository.countByStatus(Status.INACTIVE)));
+
+        return totalsellers;
+    }
+
+//    public Map<String ,String> totalUnApprovedSeller(){
+//        Map<String ,String> totalsellers=new HashMap<>();
+//        Integer totalsellerPresent= sellerRepository.findAllByStatus(Status.PENDING).size();
+//        totalsellers.put("totalApprovedSeller",totalsellerPresent.toString());
+//        return totalsellers;
+//    }
+//    public Map<String ,String> totalSuspendedSeller(){
+//        Map<String ,String> totalsellers=new HashMap<>();
+//        Integer totalsellerPresent= sellerRepository.findAllByStatus(Status.SUSPENDED).size();
+//        totalsellers.put("totalApprovedSeller",totalsellerPresent.toString());
+//        return totalsellers;
+//    }
+//    public Map<String ,String> totalRejectedSeller(){
+//        Map<String ,String> totalsellers=new HashMap<>();
+//        Integer totalsellerPresent= sellerRepository.findAllByStatus(Status.REJECTED).size();
+//        totalsellers.put("totalApprovedSeller",totalsellerPresent.toString());
+//        return totalsellers;
+//    }
+//    public Map<String ,String> totalInactiveSeller(){
+//        Map<String ,String> totalsellers=new HashMap<>();
+//        Integer totalsellerPresent= sellerRepository.findAllByStatus(Status.INACTIVE).size();
+//        totalsellers.put("totalApprovedSeller",totalsellerPresent.toString());
+//        return totalsellers;
+//    }
 
 
 }

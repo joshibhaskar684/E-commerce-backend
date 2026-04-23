@@ -40,6 +40,13 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/count")
+    public ResponseEntity<Map<String ,String>> totalShopsCount(){
+
+        return new ResponseEntity<>(myUserServices.totalUsersCount(),HttpStatus.OK);
+    }
+
     @PostMapping("/login/verify")
     public ResponseEntity<ResponseDto>VerifyEmail(@RequestBody LoginDto loginDto){
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
@@ -64,7 +71,7 @@ public class AuthController {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-         if(roles.contains("ROLE_SELLER")||roles.contains("ROLE_ADMIN")) {
+         if(roles.contains("ROLE_SELLER")) {
 
              String token = jwtUtil.generateToken(loginDto.getEmail(), roles);
 

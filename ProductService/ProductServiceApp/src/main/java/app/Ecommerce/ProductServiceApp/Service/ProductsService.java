@@ -30,7 +30,8 @@ public class ProductsService {
         this.productMapper = productMapper;
     }
 
-    public ResponseEntity<Product> createNewProduct(Product product){
+    public ResponseEntity<Product> createNewProduct(Product product,String token){
+
         Category category1= categoryRepository.findById(product.getCategoryId()).orElseThrow(()->new RuntimeException("Category with id doesnt exist"));
 
         return new ResponseEntity<>(productsRepository.save(product), HttpStatus.OK);

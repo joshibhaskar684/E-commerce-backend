@@ -5,6 +5,7 @@ import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
+import app.auth.service.Enums.Status;
 import app.auth.service.Service.SellerService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -12,14 +13,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 public class SellerController {
+
     private SellerService sellerService;
 
     public SellerController(SellerService sellerService) {
         this.sellerService = sellerService;
     }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/seller/suspend/{id}")
+    public ResponseEntity<String> suspendSeller(@PathVariable Long id, @RequestHeader("Authorization") String authHeader, @RequestBody RejectRequest rejectRequest) throws Exception {
+        String token=authHeader.substring(7);
+        return new ResponseEntity<>(sellerService.suspendSeller(token,id,rejectRequest), HttpStatus.OK);
+    }
+
+@GetMapping("/seller/count")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<Map<String ,String>> totalSellerCount(){
+
+    return new ResponseEntity<>(sellerService.totalSellerCount(),HttpStatus.OK);
+}
+
 
 @GetMapping("/seller/profile")
 public ResponseEntity<SellerProfileDto> getSellerProfile(@RequestHeader("Authorization") String authHeader) throws Exception {

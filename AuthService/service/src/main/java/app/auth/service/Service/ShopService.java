@@ -1,7 +1,6 @@
 package app.auth.service.Service;
 
 import app.auth.service.DTO.RejectRequest;
-import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.ShopDetailsDto;
 import app.auth.service.DTO.ShopDto;
 import app.auth.service.Entity.Seller;
@@ -11,18 +10,18 @@ import app.auth.service.Enums.Status;
 import app.auth.service.Mapper.ShopMapper;
 import app.auth.service.Repository.SellerRepository;
 import app.auth.service.Repository.ShopRepository;
-import app.auth.service.Repository.UsersRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @Service
 public class ShopService {
+
     private SellerRepository sellerRepository;
     private ShopRepository shopRepository;
     private MyUserServices myUserServices;
@@ -35,6 +34,69 @@ public class ShopService {
         this.shopMapper = shopMapper;
     }
 
+    public Map<String, String> totalShopCountForSeller(String token) throws Exception {
+
+        Map<String, String> totalShops = new HashMap<>();
+
+        totalShops.put("totalApprovedShop",
+                String.valueOf(shopRepository.countByStatusAndSeller(Status.APPROVED,sellerRepository.findByUser(myUserServices.findDetailsByJwt(token)).orElseThrow(()->new RuntimeException("Seller data is Wrong ")))));
+
+        totalShops.put("totalRejectedShop",
+                String.valueOf(shopRepository.countByStatusAndSeller(Status.REJECTED,sellerRepository.findByUser(myUserServices.findDetailsByJwt(token)).orElseThrow(()->new RuntimeException("Seller data is Wrong ")))));
+
+
+        totalShops.put("totalUnApprovedShop",
+                String.valueOf(shopRepository.countByStatusAndSeller(Status.PENDING,sellerRepository.findByUser(myUserServices.findDetailsByJwt(token)).orElseThrow(()->new RuntimeException("Seller data is Wrong ")))));
+
+
+        totalShops.put("totalSuspendedShop",
+                String.valueOf(shopRepository.countByStatusAndSeller(Status.SUSPENDED,sellerRepository.findByUser(myUserServices.findDetailsByJwt(token)).orElseThrow(()->new RuntimeException("Seller data is Wrong ")))));
+
+
+        totalShops.put("totalInActiveShop",
+                String.valueOf(shopRepository.countByStatusAndSeller(Status.INACTIVE,sellerRepository.findByUser(myUserServices.findDetailsByJwt(token)).orElseThrow(()->new RuntimeException("Seller data is Wrong ")))));
+
+
+        return totalShops;
+    }
+
+
+    public Map<String, String> totalShopCount() {
+
+        Map<String, String> totalShops = new HashMap<>();
+
+        totalShops.put("totalApprovedShop",
+                String.valueOf(shopRepository.countByStatus(Status.APPROVED)));
+
+        totalShops.put("totalRejectedShop",
+                String.valueOf(shopRepository.countByStatus(Status.REJECTED)));
+
+        totalShops.put("totalUnApprovedShop",
+                String.valueOf(shopRepository.countByStatus(Status.PENDING)));
+
+        totalShops.put("totalSuspendedShop",
+                String.valueOf(shopRepository.countByStatus(Status.SUSPENDED)));
+
+        totalShops.put("totalInActiveShop",
+                String.valueOf(shopRepository.countByStatus(Status.INACTIVE)));
+
+        return totalShops;
+    }
+
+    public String closeShop(String token, Long id) throws Exception {
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+        Shop shop=shopRepository.getReferenceById(id);
+        if(shop.getStatus().equals(Status.REJECTED)||shop.getStatus().equals(Status.SUSPENDED)||shop.getStatus().equals(Status.INACTIVE)){
+            throw new RuntimeException("Operation denied ! Shop is already Suspended/Rejected ");
+
+        }
+        if(!userDetails.equals(shop.getSeller().getUser())){
+            throw new RuntimeException("Access denied ! wrong User / Owner");
+        }
+        shop.setStatus(Status.INACTIVE);
+        shopRepository.save(shop);
+        return "Shop Close Sucessfully";
+    }
 
 
     public Page<ShopDto> getUnapprovedSellerList(Integer pageno, Integer pagesize){
@@ -70,9 +132,12 @@ public class ShopService {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
 
         Seller seller=sellerRepository.findByUser(userDetails).orElseThrow(()->new RuntimeException("Seller Not Found"));
+        if(seller.getStatus() != Status.APPROVED){
+            throw new RuntimeException("Seller not approved");
+        }
        List< Shop> shop1=shopRepository.findBySeller(seller);
-        if(shop1.size()>1){
-            throw new RuntimeException("Shop Already Exist");
+        if(!shop1.isEmpty()){
+            throw new RuntimeException("Shop Already Exists");
         }
         shop.setStatus(Status.PENDING);
         shop.setSeller(seller);
@@ -81,7 +146,7 @@ public class ShopService {
     }
     public String applyForShop (String token , Shop shop) throws Exception {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
-        Seller seller=sellerRepository.findByUser(userDetails).get();
+        Seller seller=sellerRepository.findByUser(userDetails).orElseThrow(() -> new RuntimeException("Seller not found"));;
         shop.setStatus(Status.PENDING);
         shop.setSeller(seller);
         shopRepository.save(shop);
@@ -127,9 +192,17 @@ public class ShopService {
     }
 
 
-    public ShopDetailsDto getShopDataByid(Long id) {
+    public ShopDetailsDto getShopDataByid(Long id,String token) throws Exception {
         if(!shopRepository.existsById(id)){
             throw new RuntimeException("Shop Not Found");
+        }
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+
+        if(!shopRepository.getReferenceById(id).getSeller().getUser().equals(userDetails)){
+            if(userDetails.getRole().equals("ADMIN")){
+                return shopMapper.convertShopToShopDetailDTO(shopRepository.getReferenceById(id));
+            }
+            throw new RuntimeException("Seller Not Found/Mismatch");
         }
         return shopMapper.convertShopToShopDetailDTO(shopRepository.getReferenceById(id));
     }

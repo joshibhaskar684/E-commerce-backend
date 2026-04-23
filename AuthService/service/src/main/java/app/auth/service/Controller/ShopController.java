@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth/shops")
@@ -24,6 +25,31 @@ public class ShopController {
     public ShopController(ShopService shopService) {
         this.shopService = shopService;
     }
+
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/shop/count")
+    public ResponseEntity<Map<String ,String>> totalShopsCount(){
+
+        return new ResponseEntity<>(shopService.totalShopCount(),HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('SELLER')")
+    @GetMapping("/seller/shop/count")
+    public ResponseEntity<Map<String ,String>> totalShopsCountForSeller(@RequestHeader("Authorization") String authHeader) throws Exception {
+        String token=authHeader.substring(7);
+
+        return new ResponseEntity<>(shopService.totalShopCountForSeller(token),HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('SELLER')")
+    @PostMapping("/close/{id}")
+    public ResponseEntity<String> CloseShopWithId(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) throws Exception {
+        String token=authHeader.substring(7);
+        return new ResponseEntity<>(shopService.closeShop(token,id), HttpStatus.OK);
+    }
+
 
     @PreAuthorize("hasRole('SELLER')")
     @GetMapping("/apply/total/shop")
@@ -46,8 +72,10 @@ public class ShopController {
 
 
     @GetMapping("/check/shop/{id}")
-    public ResponseEntity<ShopDetailsDto> findShopById(@PathVariable Long id){
-        return new ResponseEntity<>( shopService.getShopDataByid(id), HttpStatus.OK);
+    public ResponseEntity<ShopDetailsDto> findShopById(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) throws Exception {
+
+        String token=authHeader.substring(7);
+        return new ResponseEntity<>( shopService.getShopDataByid(id,token), HttpStatus.OK);
     }
 
     @PostMapping("/create/shop")
@@ -63,6 +91,7 @@ public class ShopController {
         String token=authHeader.substring(7);
         return new ResponseEntity<>(shopService.approveShop(token,id), HttpStatus.OK);
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/unapprove/shop/page")
     public ResponseEntity <Page<ShopDto>> unapproveSellerList(@RequestParam Integer pageno, @RequestParam Integer pagesize){
@@ -95,6 +124,8 @@ public class ShopController {
         String token=authHeader.substring(7);
         return new ResponseEntity<>(shopService.rejectShop(token,id,rejectRequest), HttpStatus.OK);
     }
+
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/suspend/shop/{id}")
     public ResponseEntity<String> suspendSeller(@PathVariable Long id, @RequestHeader("Authorization") String authHeader, @RequestBody RejectRequest rejectRequest) throws Exception {
