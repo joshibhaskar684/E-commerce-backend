@@ -44,6 +44,9 @@ public class Product {
 
     private List<String> categoryPath;
 
+    private Long shopId;     // PK
+    private Long sellerId;
+
 
     // Dynamic key-value pair
     private Map<String, Object> specifications;
