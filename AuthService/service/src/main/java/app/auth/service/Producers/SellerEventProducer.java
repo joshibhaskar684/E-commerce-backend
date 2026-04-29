@@ -1,6 +1,7 @@
 package app.auth.service.Producers;
 
 import app.auth.service.Events.SellerApprovedEvent;
+import com.fasterxml.jackson.databind.ObjectMapper; // ✅ FIXED
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -8,13 +9,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class SellerEventProducer {
 
-    private KafkaTemplate<String, SellerApprovedEvent> kafkaTemplate;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
-    public SellerEventProducer(KafkaTemplate<String, SellerApprovedEvent> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public void sendSellerApprovedEvent(SellerApprovedEvent event) {
-        kafkaTemplate.send("seller-events", event);
+        try {
+            String json = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("seller-topic", json);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
