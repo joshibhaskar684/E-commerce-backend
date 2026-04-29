@@ -26,8 +26,9 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<Product>createNewProduct(@RequestBody Product product ){
-       return productsService.createNewProduct(product);
+    public ResponseEntity<Product>createNewProduct(@RequestBody Product product, @RequestHeader("Authorization") String authHeader){
+        String token=authHeader.substring(7);
+       return productsService.createNewProduct(product,token);
     }
     @GetMapping
     public ResponseEntity<List<Product>>getAllProducts(){

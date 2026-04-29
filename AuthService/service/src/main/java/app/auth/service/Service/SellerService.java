@@ -7,8 +7,10 @@ import app.auth.service.Entity.Seller;
 import app.auth.service.Entity.Shop;
 import app.auth.service.Entity.UserDetailsEntity;
 import app.auth.service.Enums.Status;
+import app.auth.service.Events.SellerApprovedEvent;
 import app.auth.service.Exceptions.ResourceAlreadyExistsException;
 import app.auth.service.Mapper.SellerMapper;
+import app.auth.service.Producers.SellerEventProducer;
 import app.auth.service.Repository.SellerRepository;
 import app.auth.service.Repository.UsersRepository;
 import org.springframework.data.domain.Page;
@@ -28,15 +30,14 @@ public class SellerService {
     private SellerRepository sellerRepository;
     private MyUserServices myUserServices;
     private SellerMapper sellerMapper;
+    private SellerEventProducer sellerEventProducer;
 
-
-    public SellerService(SellerRepository sellerRepository, MyUserServices myUserServices, SellerMapper sellerMapper) {
+    public SellerService(SellerRepository sellerRepository, MyUserServices myUserServices, SellerMapper sellerMapper, SellerEventProducer sellerEventProducer) {
         this.sellerRepository = sellerRepository;
         this.myUserServices = myUserServices;
         this.sellerMapper = sellerMapper;
+        this.sellerEventProducer = sellerEventProducer;
     }
-
-
 
     public String suspendSeller(String token, Long id, RejectRequest rejectRequest) throws Exception {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
@@ -158,7 +159,10 @@ public class SellerService {
        seller.setStatus(Status.APPROVED);
        myUserServices.changeRoleToSeller(seller.getUser().getEmail());
        sellerRepository.save(seller);
-       return "Seller Approved Sucessfully ";
+        SellerApprovedEvent event = new SellerApprovedEvent(seller.getId(), "APPROVED");
+        sellerEventProducer.sendSellerApprovedEvent(event);
+
+        return "Seller Approved Sucessfully ";
 
     }
 
