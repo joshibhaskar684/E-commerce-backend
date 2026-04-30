@@ -159,8 +159,8 @@ public class SellerService {
        seller.setStatus(Status.APPROVED);
        myUserServices.changeRoleToSeller(seller.getUser().getEmail());
        sellerRepository.save(seller);
-        SellerApprovedEvent event = new SellerApprovedEvent(seller.getId(), "APPROVED");
-        sellerEventProducer.sendSellerApprovedEvent(event);
+        SellerApprovedEvent event = new SellerApprovedEvent("seller event generated ","PENDING",seller.getId(), Status.APPROVED);
+        sellerEventProducer.sendEvent(event);
 
         return "Seller Approved Sucessfully ";
 
