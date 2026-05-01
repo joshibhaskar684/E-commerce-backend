@@ -1,6 +1,6 @@
 package app.auth.service.DTO;
 
-import app.auth.service.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -50,9 +50,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .stream()
                     .map(GrantedAuthority::getAuthority)
                     .toList();
-
             // Generate JWT
-            String token = jwtUtil.generateToken(email, roles);
+            String token = jwtUtil.generateToken(email, userEntity.getId(), roles);
 
             // Send JWT in cookie
             ResponseCookie cookie = ResponseCookie.from("usertoken", token)

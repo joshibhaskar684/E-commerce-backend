@@ -1,4 +1,4 @@
-package app.Ecommerce.ProductServiceApp.Enums;
+package com.ecommerce.commonlib.base_domains.Enums;
 
 public enum Status {
     ACTIVE,

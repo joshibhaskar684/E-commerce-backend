@@ -7,6 +7,7 @@ import app.auth.service.DTO.ResponseDto;
 import app.auth.service.DTO.Signupdto;
 import app.auth.service.Entity.UserDetailsEntity;
 import app.auth.service.Security.JwtUtil;
+import app.auth.service.Security.UserPrincipal;
 import app.auth.service.Service.MyUserServices;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -52,7 +53,7 @@ public class AuthController {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        String token=jwtUtil.generateToken(loginDto.getEmail(),myUserServices.findUserByEmail(loginDto.getEmail()).getId(),roles);
         ResponseCookie cookieuser = ResponseCookie.from("verifyToken", token)
          .httpOnly(false)           // JavaScript cannot read the cookie
                 .secure(true)            // true in production HTTPS
@@ -69,11 +70,13 @@ public class AuthController {
     @PostMapping("/login/seller")
     public ResponseEntity<ResponseDto>LoginSeller(@RequestBody LoginDto loginDto) throws Exception {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
          if(roles.contains("ROLE_SELLER")) {
 
-             String token = jwtUtil.generateToken(loginDto.getEmail(), roles);
+             String token = jwtUtil.generateToken(loginDto.getEmail(),userId, roles);
 
              ResponseCookie cookieuser = ResponseCookie.from("sellerToken", token)
                      .secure(true)            // true in production HTTPS
@@ -95,6 +98,9 @@ public class AuthController {
     @PostMapping("/login/admin")
     public ResponseEntity<ResponseDto>LoginAdmin(@RequestBody LoginDto loginDto) throws Exception {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         if(!roles.contains("ROLE_ADMIN")){
@@ -102,7 +108,7 @@ public class AuthController {
                     .badRequest()
                     .body(new ResponseDto("","Admin Login Failed  !"));
         }
-        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        String token=jwtUtil.generateToken(loginDto.getEmail(),userId,roles);
 
         ResponseCookie cookieuser = ResponseCookie.from("adminToken", token)
 //                .httpOnly(false)           // JavaScript cannot read the cookie
@@ -137,9 +143,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ResponseDto>loginUser(@RequestBody LoginDto loginDto){
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        String token=jwtUtil.generateToken(loginDto.getEmail(),userId,roles);
 //        ResponseCookie cookie = ResponseCookie.from("token", token)
 //
 //                .httpOnly(true)           // JavaScript cannot read the cookie
@@ -167,9 +176,12 @@ public class AuthController {
     @PostMapping("/user-login")
     public ResponseEntity<ResponseDto>loginUserC(@RequestBody LoginDto loginDto){
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        String token=jwtUtil.generateToken(loginDto.getEmail(),userId,roles);
         ResponseCookie cookie = ResponseCookie.from("token", token)
 
                 .httpOnly(true)           // JavaScript cannot read the cookie
@@ -194,9 +206,12 @@ public class AuthController {
     @PostMapping("/admin-login")
     public ResponseEntity<ResponseDto>loginAdmin(@RequestBody LoginDto loginDto) throws Exception {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        String token=jwtUtil.generateToken(loginDto.getEmail(),userId,roles);
         AdminDTO admin=myUserServices.findAdminByJwt(token);
 
         if (!"ADMIN".equals(admin.getRole())) {
@@ -222,9 +237,12 @@ public class AuthController {
     @PostMapping("/seller-login")
     public ResponseEntity<ResponseDto>loginSeller(@RequestBody LoginDto loginDto) throws Exception {
         Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(),loginDto.getPassword()));
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        String token=jwtUtil.generateToken(loginDto.getEmail(),roles);
+        String token=jwtUtil.generateToken(loginDto.getEmail(),userId,roles);
         UserDetailsEntity admin=myUserServices.findDetailsByJwt(token);
         if (!"SELLER".equals(admin.getRole())) {
             return new ResponseEntity<ResponseDto>(new ResponseDto(token, "Student Doesn't exist"), HttpStatus.CONFLICT);

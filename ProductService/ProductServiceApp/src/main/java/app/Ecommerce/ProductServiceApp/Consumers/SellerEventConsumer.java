@@ -1,30 +1,30 @@
 package app.Ecommerce.ProductServiceApp.Consumers;
 
 import app.Ecommerce.ProductServiceApp.Entity.SellerData;
-import app.Ecommerce.ProductServiceApp.Enums.Status;
-import app.Ecommerce.ProductServiceApp.Events.SellerApprovedEvent;
 import app.Ecommerce.ProductServiceApp.Repository.SellerDataRepository;
+import com.ecommerce.commonlib.base_domains.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Event.SellerApprovedEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SellerEventConsumer {
 
-    private final SellerDataRepository sellerDataRepository;
-    private final ObjectMapper objectMapper;
+    private static final Logger LOGGER= LoggerFactory.getLogger(SellerEventConsumer.class);
 
-    public SellerEventConsumer(SellerDataRepository sellerDataRepository,
-                               ObjectMapper objectMapper) {
+
+    private final SellerDataRepository sellerDataRepository;
+
+    public SellerEventConsumer(SellerDataRepository sellerDataRepository) {
         this.sellerDataRepository = sellerDataRepository;
-        this.objectMapper = objectMapper;
     }
 
-    @KafkaListener(topics = "seller-events", groupId = "product-group")
-    public void consume(String message) throws Exception {
-
-        SellerApprovedEvent event =
-                objectMapper.readValue(message, SellerApprovedEvent.class);
+    @KafkaListener(topics = "${spring.kafka.topic.name}", groupId = "${spring.kafka.consumer.group-id}")
+    public void consume(SellerApprovedEvent event) throws Exception {
+LOGGER.info(String.format("seller approved Event Received => %s", event.toString()));
 
         System.out.println("Seller ID: " + event.getSellerId());
 

@@ -1,6 +1,6 @@
 package app.auth.service.Entity;
 
-import app.auth.service.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

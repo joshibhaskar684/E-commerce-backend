@@ -5,7 +5,6 @@ import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
-import app.auth.service.Enums.Status;
 import app.auth.service.Service.SellerService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;

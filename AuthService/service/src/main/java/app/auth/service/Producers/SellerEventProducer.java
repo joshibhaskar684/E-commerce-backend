@@ -1,6 +1,6 @@
 package app.auth.service.Producers;
 
-import app.auth.service.Events.SellerApprovedEvent;
+import com.ecommerce.commonlib.base_domains.Event.SellerApprovedEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 //import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.impl.io.AbstractMessageWriter;

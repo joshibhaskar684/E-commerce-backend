@@ -1,5 +1,6 @@
-package app.Ecommerce.ProductServiceApp.Events;
+package com.ecommerce.commonlib.base_domains.Event;
 
+import com.ecommerce.commonlib.base_domains.Enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class SellerApprovedEvent {
+    private String message;
+    private String messageStatus;
     private Long sellerId;
-    private String status;
+    private Status status;
 
     // constructor, getters, setters
 }

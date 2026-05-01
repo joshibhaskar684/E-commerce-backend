@@ -4,7 +4,6 @@ import app.auth.service.DTO.AdminDTO;
 import app.auth.service.DTO.ResponseDto;
 import app.auth.service.DTO.Signupdto;
 import app.auth.service.Entity.UserDetailsEntity;
-import app.auth.service.Enums.Status;
 import app.auth.service.Repository.UsersRepository;
 import app.auth.service.Security.JwtUtil;
 import app.auth.service.Security.UserPrincipal;

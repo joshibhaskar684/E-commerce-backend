@@ -1,6 +1,6 @@
 package app.Ecommerce.ProductServiceApp.Entity;
 
-import app.Ecommerce.ProductServiceApp.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -6,13 +6,14 @@ import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
 import app.auth.service.Entity.Shop;
 import app.auth.service.Entity.UserDetailsEntity;
-import app.auth.service.Enums.Status;
-import app.auth.service.Events.SellerApprovedEvent;
+
 import app.auth.service.Exceptions.ResourceAlreadyExistsException;
 import app.auth.service.Mapper.SellerMapper;
 import app.auth.service.Producers.SellerEventProducer;
 import app.auth.service.Repository.SellerRepository;
 import app.auth.service.Repository.UsersRepository;
+import com.ecommerce.commonlib.base_domains.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Event.SellerApprovedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -18,6 +18,9 @@ public class CorsGlobalConfig {
                 // Route /auth/** to AUTH-SERVICE
                 .route("auth-service-route", r -> r.path("/auth/**")
                         .uri("lb://AUTH-SERVICE"))
+                .route("cart-service", r -> r.path("/cart/**")
+                        .uri("lb://CART-SERVICE"))// Eureka + load-balanced
+
                 .route("products-service", r -> r.path("/products/**")
                         .uri("lb://PRODUCTS-SERVICE"))// Eureka + load-balanced
                 .build();

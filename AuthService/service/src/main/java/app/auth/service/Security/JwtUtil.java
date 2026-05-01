@@ -54,8 +54,9 @@ public class JwtUtil {
     }
 
     // JWT methods remain unchanged
-    public String generateToken(String username, List<String> roles){
+    public String generateToken(String username,Long id, List<String> roles){
         return Jwts.builder()
+                .claim("userId",id)
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*24*7))
@@ -63,6 +64,7 @@ public class JwtUtil {
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
+
 
     public String generateAdminToken(String username, List<String> roles, boolean otpVerified){
         return Jwts.builder()
@@ -77,6 +79,9 @@ public class JwtUtil {
 
     public Boolean isTokenValid(String token, String username){
         return extractUsername(token).equals(username) && !isTokenExpired(token);
+    }
+    public Long extractUserId(String token){
+        return extractAllClaims(token, claims -> claims.get("userId", Long.class));
     }
 
     public String extractUsername(String token){

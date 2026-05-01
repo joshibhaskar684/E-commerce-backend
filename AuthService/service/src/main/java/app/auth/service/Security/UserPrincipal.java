@@ -21,6 +21,9 @@ public class UserPrincipal implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_"+userDetailsEntity.getRole()));
 
     }
+    public Long getUserId() {
+        return userDetailsEntity.getId();
+    }
 
     @Override
     public String getPassword() {

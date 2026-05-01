@@ -14,31 +14,31 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfig {
 
-    @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
-
-        Map<String, Object> config = new HashMap<>();
-
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "product-group");
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-        return new DefaultKafkaConsumerFactory<>(
-                config,
-                new StringDeserializer(),
-                new StringDeserializer()
-        );
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String>
-    kafkaListenerContainerFactory() {
-
-        ConcurrentKafkaListenerContainerFactory<String, String> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
-
-        factory.setConsumerFactory(consumerFactory());
-
-        return factory;
-    }
+//    @Bean
+//    public ConsumerFactory<String, String> consumerFactory() {
+//
+//        Map<String, Object> config = new HashMap<>();
+//
+//        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+//        config.put(ConsumerConfig.GROUP_ID_CONFIG, "product-group");
+//        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+//
+//        return new DefaultKafkaConsumerFactory<>(
+//                config,
+//                new StringDeserializer(),
+//                new StringDeserializer()
+//        );
+//    }
+//
+//    @Bean
+//    public ConcurrentKafkaListenerContainerFactory<String, String>
+//    kafkaListenerContainerFactory() {
+//
+//        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+//                new ConcurrentKafkaListenerContainerFactory<>();
+//
+//        factory.setConsumerFactory(consumerFactory());
+//
+//        return factory;
+//    }
 }
