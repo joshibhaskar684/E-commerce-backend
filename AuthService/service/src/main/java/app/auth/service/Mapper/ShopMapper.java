@@ -16,6 +16,7 @@ public class ShopMapper {
     }
     public ShopDetailsDto convertShopToShopDetailDTO(Shop shop){
         ShopDetailsDto shopDetailsDto=new ShopDetailsDto(shop.getId(),
+                shop.getSeller().getId(),
                 shop.getRejectionReason(),shop.getShopName(),
                 shop.getDescription(),shop.getLogoUrl(),
                 shop.getBannerUrl(),shop.getAddress(),

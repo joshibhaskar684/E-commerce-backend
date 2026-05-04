@@ -1,7 +1,6 @@
 package com.ecommerce.commonlib.base_domains.Event;
 
 import com.ecommerce.commonlib.base_domains.Enums.EventType;
-import com.ecommerce.commonlib.base_domains.Enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,12 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SellerApprovedEvent {
+public class ChangeProductStatusWithShop {
+    private Long shopId;
     private String message;
-    private String messageStatus;
-    private Long sellerId;
-    private Status status;
     private EventType eventType;
 
-    // constructor, getters, setters
 }

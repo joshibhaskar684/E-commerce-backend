@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,8 @@ public class ProductsDto {
     private String brand;
     private String name;
     private String image;
-    private Double price;
-    private Double originalPrice;
+    private BigDecimal price;
+    private BigDecimal originalPrice;
     private String storeId;
     private List<String> categoryPath;
     @CreatedDate

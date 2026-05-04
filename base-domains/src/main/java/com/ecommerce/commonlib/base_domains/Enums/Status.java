@@ -6,6 +6,9 @@ public enum Status {
     PENDING,
     APPROVED,
     REJECTED,
-    SUSPENDED
+    SUSPENDED,
+    OUT_OF_STOCK,
+    DRAFT,
+    DELETED
 
 }

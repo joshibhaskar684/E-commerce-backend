@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SellerApprovedEvent {
-    private String message;
-    private String messageStatus;
+public class ShopApprovedEvent {
     private Long sellerId;
     private Status status;
+    private Long shopId;
     private EventType eventType;
+    private String message;
 
     // constructor, getters, setters
 }

@@ -74,7 +74,7 @@ public class AuthController {
         Long userId = principal.getUserId();
         SecurityContextHolder.getContext().setAuthentication(authentication);
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-         if(roles.contains("ROLE_SELLER")) {
+         if(roles.contains("ROLE_SELLER")||roles.contains("ROLE_ADMIN")) {
 
              String token = jwtUtil.generateToken(loginDto.getEmail(),userId, roles);
 
@@ -245,10 +245,10 @@ public class AuthController {
         String token=jwtUtil.generateToken(loginDto.getEmail(),userId,roles);
         UserDetailsEntity admin=myUserServices.findDetailsByJwt(token);
         if (!"SELLER".equals(admin.getRole())) {
-            return new ResponseEntity<ResponseDto>(new ResponseDto(token, "Student Doesn't exist"), HttpStatus.CONFLICT);
+            return new ResponseEntity<ResponseDto>(new ResponseDto(token, "Seller Doesn't exist"), HttpStatus.CONFLICT);
         }
 
-        return new ResponseEntity<ResponseDto>(new ResponseDto(token,"Student Login Sucessfull !"), HttpStatus.ACCEPTED);
+        return new ResponseEntity<ResponseDto>(new ResponseDto(token,"seller Login Sucessfull !"), HttpStatus.ACCEPTED);
 
     }
     @PreAuthorize("hasRole('ADMIN')")

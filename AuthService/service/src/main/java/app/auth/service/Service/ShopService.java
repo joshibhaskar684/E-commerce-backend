@@ -7,9 +7,16 @@ import app.auth.service.Entity.Seller;
 import app.auth.service.Entity.Shop;
 import app.auth.service.Entity.UserDetailsEntity;
 import app.auth.service.Mapper.ShopMapper;
+import app.auth.service.Producers.KafkaEventProducer;
+import app.auth.service.Producers.KafkaTopicProperties;
 import app.auth.service.Repository.SellerRepository;
 import app.auth.service.Repository.ShopRepository;
+import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Event.ChangeProductStatusWithShop;
+import com.ecommerce.commonlib.base_domains.Event.ChangeShopStatusWithSeller;
+import com.ecommerce.commonlib.base_domains.Event.SellerApprovedEvent;
+import com.ecommerce.commonlib.base_domains.Event.ShopApprovedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,13 +33,18 @@ public class ShopService {
     private ShopRepository shopRepository;
     private MyUserServices myUserServices;
     private ShopMapper shopMapper;
+    private KafkaEventProducer kafkaEventProducer;
+    private KafkaTopicProperties kafkaTopicProperties;
 
-    public ShopService(SellerRepository sellerRepository, ShopRepository shopRepository, MyUserServices myUserServices, ShopMapper shopMapper) {
+    public ShopService(SellerRepository sellerRepository, ShopRepository shopRepository, MyUserServices myUserServices, ShopMapper shopMapper, KafkaEventProducer kafkaEventProducer, KafkaTopicProperties kafkaTopicProperties) {
         this.sellerRepository = sellerRepository;
         this.shopRepository = shopRepository;
         this.myUserServices = myUserServices;
         this.shopMapper = shopMapper;
+        this.kafkaEventProducer = kafkaEventProducer;
+        this.kafkaTopicProperties = kafkaTopicProperties;
     }
+
 
     public Map<String, String> totalShopCountForSeller(String token) throws Exception {
 
@@ -94,33 +106,41 @@ public class ShopService {
             throw new RuntimeException("Access denied ! wrong User / Owner");
         }
         shop.setStatus(Status.INACTIVE);
-        shopRepository.save(shop);
+        Shop shopforEvent=shopRepository.save(shop);
+        if(shop.getStatus().equals(Status.APPROVED)){
+        ShopApprovedEvent event = new ShopApprovedEvent();
+        event.setShopId(shopforEvent.getId());
+        event.setSellerId(shopforEvent.getSeller().getId());
+        event.setStatus(Status.INACTIVE);
+        event.setEventType(EventType.INACTIVE);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getShop(),event);
+        }
         return "Shop Close Sucessfully";
     }
 
 
     public Page<ShopDto> getUnapprovedSellerList(Integer pageno, Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
-        Page<Shop> shopsPage=shopRepository.findAllByStatus(Status.PENDING,pageable);
+        Page<Shop> shopsPage=shopRepository.findByStatusAndSeller_Status(Status.PENDING,Status.APPROVED,pageable);
         Page<ShopDto> sellerDtos = shopsPage.map(entity -> shopMapper.convertToShopDto(entity));
         return sellerDtos;
     }
     public Page<ShopDto> getApprovedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
-        Page<Shop> shopsPage=shopRepository.findAllByStatus(Status.APPROVED,pageable);
+        Page<Shop> shopsPage=shopRepository.findByStatusAndSeller_Status(Status.APPROVED,Status.APPROVED,pageable);
         Page<ShopDto> sellerDtos = shopsPage.map(entity -> shopMapper.convertToShopDto(entity));
 
         return sellerDtos;
     }
     public Page<ShopDto> getRejectedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
-        Page<Shop> shopsPage=shopRepository.findAllByStatus(Status.REJECTED,pageable);
+        Page<Shop> shopsPage=shopRepository.findByStatusAndSeller_Status(Status.REJECTED,Status.APPROVED,pageable);
         Page<ShopDto> sellerDtos = shopsPage.map(entity -> shopMapper.convertToShopDto(entity));
         return sellerDtos;
     }
     public Page<ShopDto> getSuspendedSellerList(Integer pageno,Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
-        Page<Shop> shopsPage=shopRepository.findAllByStatus(Status.SUSPENDED,pageable);
+        Page<Shop> shopsPage=shopRepository.findByStatusAndSeller_Status(Status.SUSPENDED,Status.APPROVED,pageable);
         Page<ShopDto> sellerDtos = shopsPage.map(entity -> shopMapper.convertToShopDto(entity));
 
         return sellerDtos;
@@ -176,7 +196,19 @@ public class ShopService {
         Shop shop=shopRepository.getReferenceById(id);
         shop.setStatus(Status.APPROVED);
         shop.setAdmin(userDetails);
-        shopRepository.save(shop);
+        Shop shopforEvent=shopRepository.save(shop);
+
+        ShopApprovedEvent event = new ShopApprovedEvent();
+        event.setSellerId(shopforEvent.getSeller().getId());
+        event.setStatus(Status.APPROVED);
+        event.setShopId(shopforEvent.getId());
+        event.setEventType(EventType.APPROVE);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getShop(),event);
+
+//        ChangeProductStatusWithShop event2 = new ChangeProductStatusWithShop(shop.getId(),"Change Product Status with Shop",EventType.APPROVE);
+//        kafkaEventProducer.sendEvent(kafkaTopicProperties.getShop(),event2);
+
+
         return "Shop Approved Sucessfully";
     }
 
@@ -219,7 +251,15 @@ public class ShopService {
         shop.setStatus(Status.SUSPENDED);
         shop.setAdmin(userDetails);
         shop.setRejectionReason(rejectRequest.getReason());
-        shopRepository.save(shop);
+        Shop shopforEvent=shopRepository.save(shop);
+        ShopApprovedEvent event = new ShopApprovedEvent();
+        event.setSellerId( shopforEvent.getSeller().getId());
+        event.setStatus(Status.SUSPENDED);
+        event.setEventType(EventType.SUSPEND);
+        event.setShopId(shopforEvent.getId());
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getShop(),event);
+
+
         return "Shop Suspended Sucessfully";
     }
 

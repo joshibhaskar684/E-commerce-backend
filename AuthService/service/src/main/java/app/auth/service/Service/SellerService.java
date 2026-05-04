@@ -4,16 +4,16 @@ import app.auth.service.DTO.RejectRequest;
 import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
-import app.auth.service.Entity.Shop;
 import app.auth.service.Entity.UserDetailsEntity;
 
 import app.auth.service.Exceptions.ResourceAlreadyExistsException;
 import app.auth.service.Mapper.SellerMapper;
-import app.auth.service.Producers.SellerEventProducer;
+import app.auth.service.Producers.KafkaEventProducer;
+import app.auth.service.Producers.KafkaTopicProperties;
 import app.auth.service.Repository.SellerRepository;
-import app.auth.service.Repository.UsersRepository;
+import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Enums.Status;
-import com.ecommerce.commonlib.base_domains.Event.SellerApprovedEvent;
+import com.ecommerce.commonlib.base_domains.Event.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -31,13 +30,17 @@ public class SellerService {
     private SellerRepository sellerRepository;
     private MyUserServices myUserServices;
     private SellerMapper sellerMapper;
-    private SellerEventProducer sellerEventProducer;
+//    private SellerEventProducer sellerEventProducer;
+    private KafkaEventProducer kafkaEventProducer;
+    private KafkaTopicProperties kafkaTopicProperties;
 
-    public SellerService(SellerRepository sellerRepository, MyUserServices myUserServices, SellerMapper sellerMapper, SellerEventProducer sellerEventProducer) {
+
+    public SellerService(SellerRepository sellerRepository, MyUserServices myUserServices, SellerMapper sellerMapper, KafkaEventProducer kafkaEventProducer, KafkaTopicProperties kafkaTopicProperties) {
         this.sellerRepository = sellerRepository;
         this.myUserServices = myUserServices;
         this.sellerMapper = sellerMapper;
-        this.sellerEventProducer = sellerEventProducer;
+        this.kafkaEventProducer = kafkaEventProducer;
+        this.kafkaTopicProperties = kafkaTopicProperties;
     }
 
     public String suspendSeller(String token, Long id, RejectRequest rejectRequest) throws Exception {
@@ -47,7 +50,12 @@ public class SellerService {
         shop.setAdmin(userDetails);
         shop.getUser().setRole("USER");
         shop.setRejectionReason(rejectRequest.getReason());
-        sellerRepository.save(shop);
+        Seller suspendedSeller=sellerRepository.save(shop);
+
+        SellerApprovedEvent event = new SellerApprovedEvent("seller event generated for suspension","PENDING",suspendedSeller.getId(), Status.SUSPENDED, EventType.SUSPEND);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getSeller(),event);
+
+
         return "Seller Suspended Sucessfully";
     }
 
@@ -56,6 +64,7 @@ public class SellerService {
         Seller seller=sellerRepository.findByUser(userDetails).orElseThrow(()->new RuntimeException("seller not found "));
         return sellerMapper.convertInToSellerProfileDto(seller);
     }
+
     public Seller getSellerDataByid(Long id ){
         if(!sellerRepository.existsById(id)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Seller Not Found");
@@ -90,11 +99,16 @@ public class SellerService {
 
         if(userDetails.getRole().equals("ADMIN")){
             seller.setStatus(Status.APPROVED);
+
         }else{
         seller.setStatus(Status.PENDING);
         }
         seller.setUser(userDetails);
-        sellerRepository.save(seller);
+        Seller sellerfoeEvent=sellerRepository.save(seller);
+if(userDetails.getRole().equals("ADMIN")){
+    SellerApprovedEvent event = new SellerApprovedEvent("seller event generated ","PENDING",sellerfoeEvent.getId(), Status.APPROVED, EventType.APPROVE);
+    kafkaEventProducer.sendEvent(kafkaTopicProperties.getSeller(),event);
+}
 
         return "Seller Registered Sucessfully";
 
@@ -149,6 +163,7 @@ public class SellerService {
         seller.setRejectionReason(rejectRequest.getReason());
         seller.setStatus(Status.REJECTED);
         sellerRepository.save(seller);
+
         return "Seller Rejected Sucessfully ";
 
     }
@@ -160,8 +175,14 @@ public class SellerService {
        seller.setStatus(Status.APPROVED);
        myUserServices.changeRoleToSeller(seller.getUser().getEmail());
        sellerRepository.save(seller);
-        SellerApprovedEvent event = new SellerApprovedEvent("seller event generated ","PENDING",seller.getId(), Status.APPROVED);
-        sellerEventProducer.sendEvent(event);
+
+        SellerApprovedEvent event = new SellerApprovedEvent("seller event generated ","PENDING",seller.getId(), Status.APPROVED, EventType.APPROVE);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getSeller(),event);
+
+
+//
+//        ChangeProductStatusWithSeller event2 = new ChangeProductStatusWithSeller(seller.getId(),"",EventType.SUSPEND);
+//        kafkaEventProducer.sendEvent(kafkaTopicProperties.getSeller(),event2);
 
         return "Seller Approved Sucessfully ";
 

@@ -21,16 +21,16 @@ public class CartService {
     }
 
     public Cart createCart(Long userId) {
-       if( cartRepository.findByUserId(userId).isPresent()){
-           throw new RuntimeException("Cart with User ID already exist ");
 
-       }
-        Cart cart = new Cart();
-        cart.setUserId(userId);
-        cart.setItems(new ArrayList<>());
-        cart.setSummary(new CartSummary());
-        cart.setUpdatedAt(Instant.now());
-        return cartRepository.save(cart);
+        return cartRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Cart cart = new Cart();
+                    cart.setUserId(userId);
+                    cart.setItems(new ArrayList<>());
+                    cart.setSummary(new CartSummary());
+                    cart.setUpdatedAt(Instant.now());
+                    return cartRepository.save(cart);
+                });
     }
 
 

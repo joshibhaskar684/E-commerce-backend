@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @Data
 public class ShopDetailsDto {
     private Long id;
+    private Long sellerId;
     private String rejectionReason;
     private String shopName;
     private String description;

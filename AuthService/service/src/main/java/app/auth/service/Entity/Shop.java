@@ -71,7 +71,8 @@ public class Shop {
 
     // 👁️ Visibility Control
 @Enumerated(EnumType.STRING)
-private Status status;// true = visible, false = hidden
+private Status status;
+// true = visible, false = hidden
 
     // ⭐ Optional (good for future)
 

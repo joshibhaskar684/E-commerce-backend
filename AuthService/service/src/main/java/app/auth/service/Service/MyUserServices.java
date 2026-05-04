@@ -4,9 +4,13 @@ import app.auth.service.DTO.AdminDTO;
 import app.auth.service.DTO.ResponseDto;
 import app.auth.service.DTO.Signupdto;
 import app.auth.service.Entity.UserDetailsEntity;
+import app.auth.service.Producers.KafkaEventProducer;
+import app.auth.service.Producers.KafkaTopicProperties;
 import app.auth.service.Repository.UsersRepository;
 import app.auth.service.Security.JwtUtil;
 import app.auth.service.Security.UserPrincipal;
+import com.ecommerce.commonlib.base_domains.Enums.EventType;
+import com.ecommerce.commonlib.base_domains.Event.CreateCartEvent;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
@@ -27,13 +31,17 @@ public class MyUserServices implements UserDetailsService {
     private UsersRepository usersRepository;
     private JwtUtil jwtUtil;
     private EmailServices emailServices;
+    private KafkaEventProducer kafkaEventProducer;
+    private KafkaTopicProperties kafkaTopicProperties;
 
-    public MyUserServices(UsersRepository usersRepository, JwtUtil jwtUtil, EmailServices emailServices) {
+
+    public MyUserServices(UsersRepository usersRepository, JwtUtil jwtUtil, EmailServices emailServices, KafkaEventProducer kafkaEventProducer, KafkaTopicProperties kafkaTopicProperties) {
         this.usersRepository = usersRepository;
         this.jwtUtil = jwtUtil;
         this.emailServices = emailServices;
+        this.kafkaEventProducer = kafkaEventProducer;
+        this.kafkaTopicProperties = kafkaTopicProperties;
     }
-
 
     public Map<String ,String> totalUsersCount(){
         Map<String, String> totalUser = new HashMap<>();
@@ -92,7 +100,7 @@ public class MyUserServices implements UserDetailsService {
         user.setEmail(userDetails.get().getEmail());
         user.setMobileno(userDetails.get().getMobileno());
         user.setName(userDetails.get().getName());
-        user.setPassword(userDetails.get().getPassword());
+//        user.setPassword(userDetails.get().getPassword());
 
         return new ResponseEntity<Signupdto>(user,HttpStatus.OK);
     }
@@ -160,8 +168,9 @@ public class MyUserServices implements UserDetailsService {
             user.setRole("USER");
         }
 
-        usersRepository.save(user);
-
+       UserDetailsEntity userDetailsforCart= usersRepository.save(user);
+        CreateCartEvent createCartEvent=new CreateCartEvent(userDetailsforCart.getId(), EventType.CREATE);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getCart(),createCartEvent);
         return new ResponseEntity<>(
                 new ResponseDto("",
                         user.getRole().equals("ADMIN")

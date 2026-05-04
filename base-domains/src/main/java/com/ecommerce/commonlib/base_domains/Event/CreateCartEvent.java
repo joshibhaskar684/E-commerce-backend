@@ -1,20 +1,17 @@
 package com.ecommerce.commonlib.base_domains.Event;
 
 import com.ecommerce.commonlib.base_domains.Enums.EventType;
-import com.ecommerce.commonlib.base_domains.Enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class SellerApprovedEvent {
-    private String message;
-    private String messageStatus;
-    private Long sellerId;
-    private Status status;
+public class CreateCartEvent {
+
+    private Long userId;
+
     private EventType eventType;
 
-    // constructor, getters, setters
 }
