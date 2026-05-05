@@ -7,6 +7,7 @@ import app.Ecommerce.ProductServiceApp.Service.ProductsService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +21,12 @@ public class ProductsController {
         this.productsService = productsService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/test")
     public ResponseEntity<String>createNewProduct(){
         return new ResponseEntity<>("done ok ", HttpStatus.OK);
     }
+
 
     @PostMapping
     public ResponseEntity<Product>createNewProduct(@RequestBody Product product, @RequestHeader("Authorization") String authHeader){
