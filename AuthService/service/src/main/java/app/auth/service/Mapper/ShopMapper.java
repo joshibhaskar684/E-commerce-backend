@@ -7,6 +7,8 @@ import app.auth.service.DTO.ShopDto;
 import app.auth.service.Entity.Shop;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class ShopMapper {
 
@@ -27,4 +29,17 @@ public class ShopMapper {
                 );
         return shopDetailsDto;
     }
+    public ShopDto convertShopToShopDto(Shop shops) {
+        ShopDto shopData = new ShopDto(shops.getId(), shops.getShopName(), shops.getStatus(),shops.getCreatedAt(),shops.getUpdatedAt());
+
+        return shopData;
+    }
+
+    public List<ShopDto> convertListShopToListShopDto(List<Shop> shops) {
+        List<ShopDto> shopData = shops.stream().map(entity -> convertShopToShopDto(entity)).toList();
+
+                return shopData;
+    }
+
+
 }

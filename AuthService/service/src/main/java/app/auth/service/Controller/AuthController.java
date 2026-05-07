@@ -6,10 +6,12 @@ import app.auth.service.DTO.LoginDto;
 import app.auth.service.DTO.ResponseDto;
 import app.auth.service.DTO.Signupdto;
 import app.auth.service.Entity.UserDetailsEntity;
+import app.auth.service.Repository.SellerRepository;
 import app.auth.service.Security.JwtUtil;
 import app.auth.service.Security.UserPrincipal;
 import app.auth.service.Service.MyUserServices;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -34,11 +36,20 @@ public class AuthController {
     private MyUserServices myUserServices;
     private AuthenticationManager authenticationManager;
     private JwtUtil jwtUtil;
+    private SellerRepository sellerRepository;
 
-    public AuthController(MyUserServices myUserServices, AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
+
+    public AuthController(MyUserServices myUserServices, AuthenticationManager authenticationManager, JwtUtil jwtUtil, SellerRepository sellerRepository) {
         this.myUserServices = myUserServices;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.sellerRepository = sellerRepository;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/test")
+    public ResponseEntity<String>createNewProduct(){
+        return new ResponseEntity<>("done ok ", HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -76,7 +87,7 @@ public class AuthController {
         List<String> roles=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
          if(roles.contains("ROLE_SELLER")||roles.contains("ROLE_ADMIN")) {
 
-             String token = jwtUtil.generateToken(loginDto.getEmail(),userId, roles);
+             String token = jwtUtil.generateSellerToken(loginDto.getEmail(),userId,sellerRepository.findByUser(myUserServices.findUserByEmail(loginDto.getEmail())).get().getId(), roles);
 
              ResponseCookie cookieuser = ResponseCookie.from("sellerToken", token)
                      .secure(true)            // true in production HTTPS
@@ -267,5 +278,11 @@ public class AuthController {
     public ResponseEntity<Signupdto> profile(@RequestHeader("Authorization") String authHeader )throws Exception{
         String token = authHeader.substring(7);
         return myUserServices.findUserByJwt(token);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/page/data")
+    public ResponseEntity<Page<Signupdto>> PageOfUser(@RequestParam Integer pageno, @RequestParam Integer pagesize){
+        return new ResponseEntity<>(myUserServices.PageOfUserForAdmin(pageno-1,pagesize),HttpStatus.OK);
     }
 }

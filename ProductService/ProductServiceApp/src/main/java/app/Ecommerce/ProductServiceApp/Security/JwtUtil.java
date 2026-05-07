@@ -2,12 +2,15 @@ package app.Ecommerce.ProductServiceApp.Security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
@@ -33,18 +36,24 @@ public class JwtUtil {
     }
 
 
+
     private PublicKey loadPublicKeyFromBase64(String base64Key) throws Exception {
         byte[] decoded = Base64.getDecoder().decode(base64Key);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
         return KeyFactory.getInstance("RSA").generatePublic(spec);
     }
 
+    // JWT methods remain unchanged
+
+
+
+    public Long extractSellerId(String token){
+        return extractAllClaims(token, claims -> claims.get("sellerId", Long.class));
+    }
 
     public Boolean isTokenValid(String token, String username){
         return extractUsername(token).equals(username) && !isTokenExpired(token);
     }
-
-
     public Long extractUserId(String token){
         return extractAllClaims(token, claims -> claims.get("userId", Long.class));
     }

@@ -7,6 +7,7 @@ import app.Ecommerce.ProductServiceApp.Service.ProductsService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,9 @@ public class ProductsController {
         this.productsService = productsService;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/test")
     public ResponseEntity<String>createNewProduct(){
         return new ResponseEntity<>("done ok ", HttpStatus.OK);
@@ -43,6 +46,19 @@ public class ProductsController {
 
         return productsService.getAllProductsbyPage(pageno,pagesize);
     }
+
+    @GetMapping("/page/seller")
+    public ResponseEntity<Page<ProductsDto>>getAllProductsPageForSeller(@RequestHeader("Authorization") String authHeader,@RequestParam Integer pageno, @RequestParam Integer pagesize){
+        String token=authHeader.substring(7);
+
+
+        return productsService.getAllProductsbyPageForSeller(token,pageno,pagesize);
+    }
+
+    @GetMapping("/page/category/main")
+    public ResponseEntity<Page<ProductsDto>>getAllProductWhereCategory(@RequestParam String category,@RequestParam Integer pageno, @RequestParam Integer pagesize){
+        return productsService.getAllCategoryProductbyPage(category,pageno,pagesize);
+    }
     @PutMapping("/update/{productId}")
     public ResponseEntity<String>updateProductBYId(@PathVariable String productId,@RequestBody Product product){
 
@@ -55,7 +71,12 @@ public class ProductsController {
     }
 
 
+    @GetMapping("/seller/{productId}")
+    public ResponseEntity<Product>getProductDetailByIdForSeller(@RequestHeader("Authorization") String authHeader,@PathVariable String productId){
+       String token=authHeader.substring(7);
 
+        return productsService.getProductDetailByIdForSeller(token,productId);
+    }
     @GetMapping("/{productId}")
     public ResponseEntity<Product>getProductDetailById(@PathVariable String productId){
         return productsService.getProductDetailById(productId);

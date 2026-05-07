@@ -24,7 +24,7 @@ public interface ShopRepository extends JpaRepository<Shop,Long> {
 //    Optional<Shop>findBySeller(UserDetailsEntity user);
 
     Page<Shop> findAllByStatus(Status status, Pageable pageable);
-
+    List<Shop>findBySellerAndStatus(Seller seller,Status status);
     @Modifying
     @Transactional
     @Query("UPDATE Shop s SET s.status = :newStatus WHERE s.seller.id = :sellerId AND s.status = :currentStatus")

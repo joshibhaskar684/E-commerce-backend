@@ -5,13 +5,19 @@ import com.ecommerce.commonlib.base_domains.Enums.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductsRepository extends MongoRepository<Product ,String> {
     List<Product>findByCategoryId(String categoryId);
-
-
+    Optional<Product> findByIdAndSellerIdAndProductStatus(
+            String id,
+            Long sellerId,
+            Status status
+    );
+    Page<Product> findByCategoryPathContaining(String category, Pageable pageable);
     Page<Product> findAllBySellerId(Long sellerId, Pageable pageable);
 
     Page<Product> findAllByShopId(Long shopId, Pageable pageable);

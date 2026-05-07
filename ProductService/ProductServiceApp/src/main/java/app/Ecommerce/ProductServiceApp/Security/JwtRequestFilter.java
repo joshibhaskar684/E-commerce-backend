@@ -1,5 +1,6 @@
 package app.Ecommerce.ProductServiceApp.Security;
 
+import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
@@ -7,77 +8,66 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.util.List;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
+    private JwtUtil jwtUtil;
 
-    private final JwtUtil jwtUtil;
-    private final ResilienceRateLimiter rateLimiter = new ResilienceRateLimiter();
-
-    public JwtRequestFilter(JwtUtil jwtUtil) {
+   public JwtRequestFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException, java.io.IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, java.io.IOException {
 
-        String header = request.getHeader("Authorization");
-        String username = null;
-        String token = null;
+        String AuthHeader=request.getHeader("Authorization");
+        String username=null;
+String token=null;
 
-        try {
-            if (header != null && header.startsWith("Bearer ")) {
-                token = header.substring(7);
-                username = jwtUtil.extractUsername(token);
-            }
-        } catch (Exception e) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+if(AuthHeader!=null&&AuthHeader.startsWith("Bearer ")){
+    token=AuthHeader.substring(7);
+    username=jwtUtil.extractUsername(token);
 
-        String rateKey = (username != null) ? username : request.getRemoteAddr();
+}
 
-        try {
-            rateLimiter.getRateLimiter(rateKey).acquirePermission();
-        } catch (RequestNotPermitted ex) {
-            response.setStatus(429);
-            response.getWriter().write("Too many requests");
-            return;
-        }
+if(username!=null&& SecurityContextHolder.getContext().getAuthentication()==null){
 
-        if (username != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
+    List<String> roles=jwtUtil.extractRoles(token);
+    List<SimpleGrantedAuthority>authorities=roles.stream().map(role->new SimpleGrantedAuthority(role)).toList();
 
-            try {
-                Long userId = jwtUtil.extractUserId(token);
-                List<String> roles = jwtUtil.extractRoles(token);
+    UserDetails userDetails=new User(username,"",authorities);
+    if(jwtUtil.isTokenValid(token,userDetails.getUsername())){
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken=new UsernamePasswordAuthenticationToken(userDetails,null,authorities);
 
-                if (!jwtUtil.isTokenExpired(token)) {
 
-                    UserPrincipal principal =
-                            new UserPrincipal(userId, username, roles);
+        usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(
-                                    principal,
-                                    null,
-                                    principal.getAuthorities()
-                            );
 
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
+        System.out.println("AUTH SET: " +
+                SecurityContextHolder.getContext().getAuthentication());
+        System.out.println("AUTH SET: " +
+                SecurityContextHolder.getContext().getAuthentication());
+        System.out.println("AUTH SET: " +
+                SecurityContextHolder.getContext().getAuthentication());
+        System.out.println("AUTH SET: " +
+                SecurityContextHolder.getContext().getAuthentication());
+        System.out.println("AUTH SET: " +
+                SecurityContextHolder.getContext().getAuthentication());
+        System.out.println("AUTH SET: " +
+                SecurityContextHolder.getContext().getAuthentication());
 
-            } catch (Exception ignored) {}
-        }
+    }
+}
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request,response);
     }
 }

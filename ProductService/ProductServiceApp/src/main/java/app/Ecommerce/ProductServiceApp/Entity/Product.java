@@ -44,21 +44,26 @@ public class Product {
     private Integer returnDay;
 
     private String description;
-    private Boolean inStock;
+//    private Boolean inStock=quantity>0;
+
     private Double averageRating;
     private Integer totalReviews;
-    private Double discountPercentage;
+
+//    private Double discountPercentage;
+
     private Boolean freeShipping;
     private Integer deliveryDays;
-    @Indexed(unique = true)
+    @Indexed
     private String slug;
-    private List<Variant> variants;
+//    private List<Variant> variants;
     private List<String> categoryPath;
+
 
     @Indexed
     private Long shopId;
     @Indexed// PK
     private Long sellerId;
+
     @Indexed
     private Status productStatus;
     // Dynamic key-value pair

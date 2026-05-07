@@ -6,6 +6,8 @@ import app.Ecommerce.ProductServiceApp.Entity.Product;
 import app.Ecommerce.ProductServiceApp.Mapper.ProductMapper;
 import app.Ecommerce.ProductServiceApp.Repository.CategoryRepository;
 import app.Ecommerce.ProductServiceApp.Repository.ProductsRepository;
+import app.Ecommerce.ProductServiceApp.Repository.SellerDataRepository;
+import app.Ecommerce.ProductServiceApp.Security.JwtUtil;
 import com.ecommerce.commonlib.base_domains.Enums.Status;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.data.domain.Page;
@@ -32,20 +34,48 @@ public class ProductsService {
     private ProductsRepository productsRepository;
     private ProductMapper productMapper;
     private MongoTemplate mongoTemplate;
+    private JwtUtil jwtUtil;
+    private SellerDataRepository sellerDataRepository;
 
-    public ProductsService(CategoryRepository categoryRepository, ProductsRepository productsRepository, ProductMapper productMapper, MongoTemplate mongoTemplate) {
+    public ProductsService(CategoryRepository categoryRepository, ProductsRepository productsRepository, ProductMapper productMapper, MongoTemplate mongoTemplate, JwtUtil jwtUtil, SellerDataRepository sellerDataRepository) {
         this.categoryRepository = categoryRepository;
         this.productsRepository = productsRepository;
         this.productMapper = productMapper;
         this.mongoTemplate = mongoTemplate;
+        this.jwtUtil = jwtUtil;
+        this.sellerDataRepository = sellerDataRepository;
     }
 
+    public ResponseEntity<Page<ProductsDto>> getAllCategoryProductbyPage(String category,Integer pageno, Integer pagesize){
+        Pageable pageable= PageRequest.of(pageno,pagesize);
+        Page<Product> productPage=productsRepository.findByCategoryPathContaining(category,pageable);
+        Page<ProductsDto>productsDtoPage=productPage.map(entity->{
+            ProductsDto productsDto=productMapper.converProductIntoDto(entity);
+            return productsDto;
+        });
+        return new ResponseEntity<>(productsDtoPage, HttpStatus.OK);
+    }
     public ResponseEntity<Product> createNewProduct(Product product, String token){
-
-        Category category1= categoryRepository.findById(product.getCategoryId()).orElseThrow(()->new RuntimeException("Category with id doesnt exist"));
+        Long sellerId=jwtUtil.extractSellerId(token);
+        if(!sellerId.equals(product.getSellerId()) && categoryRepository.findById(product.getCategoryId()).isEmpty() && sellerDataRepository.findBySellerIdAndShopIdAndStatus(product.getSellerId(),product.getShopId(),Status.APPROVED).isEmpty()){
+            throw new RuntimeException("Seller id Mismatch / Category With Id Not found / seller & Shop Don't have any permission ");
+        }
+        product.setProductStatus(Status.ACTIVE);
 
         return new ResponseEntity<>(productsRepository.save(product), HttpStatus.OK);
     }
+    public ResponseEntity<Page<ProductsDto>> getAllProductsbyPageForSeller(String token,Integer pageno, Integer pagesize){
+
+        Long sellerId=jwtUtil.extractSellerId(token);
+        Pageable pageable= PageRequest.of(pageno,pagesize);
+        Page<Product> productPage=productsRepository.findAllBySellerIdAndProductStatus(sellerId,Status.ACTIVE,pageable);
+        Page<ProductsDto>productsDtoPage=productPage.map(entity->{
+            ProductsDto productsDto=productMapper.converProductIntoDto(entity);
+            return productsDto;
+        });
+        return new ResponseEntity<>(productsDtoPage, HttpStatus.OK);
+    }
+
     public ResponseEntity<List<Product>> getAllProducts(){
 
         return new ResponseEntity<>(productsRepository.findAll(), HttpStatus.OK);
@@ -104,5 +134,12 @@ return  "product update sucess";
 
     public static Boolean isInStock(Integer quantity) {
         return quantity != null && quantity > 0;
+    }
+
+    public ResponseEntity<Product> getProductDetailByIdForSeller(String token, String productId) {
+
+        Long sellerId=jwtUtil.extractSellerId(token);
+        Product product=productsRepository.findByIdAndSellerIdAndProductStatus(productId,sellerId,Status.ACTIVE).get();
+        return new ResponseEntity<>(product,HttpStatus.OK);
     }
 }

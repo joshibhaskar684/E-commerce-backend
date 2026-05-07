@@ -13,6 +13,9 @@ import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Event.CreateCartEvent;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -41,6 +44,20 @@ public class MyUserServices implements UserDetailsService {
         this.emailServices = emailServices;
         this.kafkaEventProducer = kafkaEventProducer;
         this.kafkaTopicProperties = kafkaTopicProperties;
+    }
+
+    public Page<Signupdto> PageOfUserForAdmin(Integer pageno,Integer pagesize){
+        Pageable pageable= PageRequest.of(pageno,pagesize);
+        Page<UserDetailsEntity>page=usersRepository.findAll(pageable);
+        Page<Signupdto> signupdtos=page.map(userDetailsEntity -> {
+            Signupdto signupdto=new Signupdto();
+            signupdto.setEmail(userDetailsEntity.getEmail());
+            signupdto.setName(userDetailsEntity.getName());
+            signupdto.setMobileno(userDetailsEntity.getMobileno());
+            signupdto.setRole(userDetailsEntity.getRole());
+            return signupdto;
+        });
+        return signupdtos;
     }
 
     public Map<String ,String> totalUsersCount(){

@@ -46,6 +46,8 @@ public class ShopService {
     }
 
 
+
+
     public Map<String, String> totalShopCountForSeller(String token) throws Exception {
 
         Map<String, String> totalShops = new HashMap<>();
@@ -263,4 +265,13 @@ public class ShopService {
         return "Shop Suspended Sucessfully";
     }
 
+    public Map<String, Object> getShopIdListAndSellerId(String token) throws Exception {
+        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
+        Map<String, Object> data=new HashMap<>();
+        Seller sellerData=sellerRepository.findByUser(userDetails).get();
+        data.put("sellerId",sellerData.getId());
+        data.put("shopIdData",shopMapper.convertListShopToListShopDto(shopRepository.findBySellerAndStatus(sellerData,Status.APPROVED)));
+        return data;
+
+    }
 }

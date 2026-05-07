@@ -52,6 +52,17 @@ public class JwtUtil {
         X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
         return KeyFactory.getInstance("RSA").generatePublic(spec);
     }
+    public String generateSellerToken (String username,Long id,Long sellerId, List<String> roles){
+        return Jwts.builder()
+                .claim("userId",id)
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*24*7))
+                .claim("roles", roles)
+                .claim("sellerId",sellerId)
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+    }
 
     // JWT methods remain unchanged
     public String generateToken(String username,Long id, List<String> roles){

@@ -25,7 +25,7 @@ public class CategoryService {
     }
 
     public ResponseEntity<Category> createCategory(Category category){
-        if(category.getParentId()!=null&&!categoryRepository.existsById(category.getParentId())){
+        if(category.getParentId()!=null&&!categoryRepository.existsById(category.getParentId())||categoryRepository.findByName(category.getName()).isPresent()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(categoryRepository.save(category), HttpStatus.OK);

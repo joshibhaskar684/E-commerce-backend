@@ -56,6 +56,7 @@ if(username!=null&& SecurityContextHolder.getContext().getAuthentication()==null
     UserDetails userDetails=myUserServices.loadUserByUsername(username);
     List<String> roles=jwtUtil.extractRoles(token);
     List<SimpleGrantedAuthority>authorities=roles.stream().map(role->new SimpleGrantedAuthority(role)).toList();
+
     if(jwtUtil.isTokenValid(token,userDetails.getUsername())){
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken=new UsernamePasswordAuthenticationToken(userDetails,null,authorities);
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);

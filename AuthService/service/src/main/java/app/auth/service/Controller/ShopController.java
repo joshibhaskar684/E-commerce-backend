@@ -26,7 +26,12 @@ public class ShopController {
         this.shopService = shopService;
     }
 
+    @GetMapping("/seller/data")
+    public ResponseEntity<Map<String ,Object>> getShopIdListAndSellerId(@RequestHeader("Authorization") String authHeader) throws Exception {
+        String token=authHeader.substring(7);
 
+        return new ResponseEntity<>(shopService.getShopIdListAndSellerId(token),HttpStatus.OK);
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/shop/count")
@@ -35,7 +40,7 @@ public class ShopController {
         return new ResponseEntity<>(shopService.totalShopCount(),HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SELLER')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     @GetMapping("/seller/shop/count")
     public ResponseEntity<Map<String ,String>> totalShopsCountForSeller(@RequestHeader("Authorization") String authHeader) throws Exception {
         String token=authHeader.substring(7);
@@ -43,7 +48,7 @@ public class ShopController {
         return new ResponseEntity<>(shopService.totalShopCountForSeller(token),HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SELLER')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     @PostMapping("/close/{id}")
     public ResponseEntity<String> CloseShopWithId(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) throws Exception {
         String token=authHeader.substring(7);
@@ -51,7 +56,7 @@ public class ShopController {
     }
 
 
-    @PreAuthorize("hasRole('SELLER')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     @GetMapping("/apply/total/shop")
     public ResponseEntity<List<ShopDto>> getBasicListOfShop(@RequestHeader("Authorization") String authHeader) throws Exception {
         String token=authHeader.substring(7);
