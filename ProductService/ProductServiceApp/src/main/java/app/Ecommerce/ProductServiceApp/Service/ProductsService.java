@@ -55,6 +55,15 @@ public class ProductsService {
         });
         return new ResponseEntity<>(productsDtoPage, HttpStatus.OK);
     }
+    public ResponseEntity<Page<ProductsDto>> getAllQueryProductbyPage(String query,Integer pageno, Integer pagesize){
+        Pageable pageable= PageRequest.of(pageno,pagesize);
+        Page<Product> productPage=productsRepository.findByNameContainingIgnoreCase(query,pageable);
+        Page<ProductsDto>productsDtoPage=productPage.map(entity->{
+            ProductsDto productsDto=productMapper.converProductIntoDto(entity);
+            return productsDto;
+        });
+        return new ResponseEntity<>(productsDtoPage, HttpStatus.OK);
+    }
     public ResponseEntity<Product> createNewProduct(Product product, String token){
         Long sellerId=jwtUtil.extractSellerId(token);
         if(!sellerId.equals(product.getSellerId()) && categoryRepository.findById(product.getCategoryId()).isEmpty() && sellerDataRepository.findBySellerIdAndShopIdAndStatus(product.getSellerId(),product.getShopId(),Status.APPROVED).isEmpty()){

@@ -59,6 +59,11 @@ public class ProductsController {
     public ResponseEntity<Page<ProductsDto>>getAllProductWhereCategory(@RequestParam String category,@RequestParam Integer pageno, @RequestParam Integer pagesize){
         return productsService.getAllCategoryProductbyPage(category,pageno,pagesize);
     }
+
+    @GetMapping("/page/query/main")
+    public ResponseEntity<Page<ProductsDto>>getAllProductWhereQuery(@RequestParam String query,@RequestParam Integer pageno, @RequestParam Integer pagesize){
+        return productsService.getAllQueryProductbyPage(query,pageno,pagesize);
+    }
     @PutMapping("/update/{productId}")
     public ResponseEntity<String>updateProductBYId(@PathVariable String productId,@RequestBody Product product){
 
