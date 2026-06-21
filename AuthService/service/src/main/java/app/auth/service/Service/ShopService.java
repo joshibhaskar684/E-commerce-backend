@@ -107,6 +107,7 @@ public class ShopService {
         if(!userDetails.equals(shop.getSeller().getUser())){
             throw new RuntimeException("Access denied ! wrong User / Owner");
         }
+
         shop.setStatus(Status.INACTIVE);
         Shop shopforEvent=shopRepository.save(shop);
         if(shop.getStatus().equals(Status.APPROVED)){

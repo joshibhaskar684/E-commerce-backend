@@ -33,7 +33,7 @@ public class CartController {
     // -------------------------
     // 2. ADD ITEM TO CART
     // -------------------------
-    @PostMapping("/item")
+    @PostMapping("/item/add")
     public Cart addItem(@RequestBody CartItemRequest request,@RequestHeader("Authorization") String authHeader ) {
 
         Long userId = SecurityUtil.getCurrentUserId();
@@ -45,7 +45,6 @@ public class CartController {
         item.setProductName(request.getProductName());
         item.setProductImage(request.getProductImage());
         item.setPriceAtAddTime(request.getPrice());
-
         return cartService.addItem(userId, item);
     }
 

@@ -4,12 +4,17 @@ import app.Ecommerce.ProductServiceApp.DTO.ProductsDto;
 import app.Ecommerce.ProductServiceApp.Entity.Category;
 import app.Ecommerce.ProductServiceApp.Entity.Product;
 import app.Ecommerce.ProductServiceApp.Mapper.ProductMapper;
+import app.Ecommerce.ProductServiceApp.Producers.KafkaEventProducer;
+import app.Ecommerce.ProductServiceApp.Producers.KafkaTopicProperties;
 import app.Ecommerce.ProductServiceApp.Repository.CategoryRepository;
 import app.Ecommerce.ProductServiceApp.Repository.ProductsRepository;
 import app.Ecommerce.ProductServiceApp.Repository.SellerDataRepository;
 import app.Ecommerce.ProductServiceApp.Security.JwtUtil;
+import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Enums.Status;
+import com.ecommerce.commonlib.base_domains.Event.ProductsEvent;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.internal.connection.tlschannel.NeedsWriteException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +24,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,17 +42,57 @@ public class ProductsService {
     private MongoTemplate mongoTemplate;
     private JwtUtil jwtUtil;
     private SellerDataRepository sellerDataRepository;
+    private KafkaEventProducer kafkaEventProducer;
+    private KafkaTopicProperties kafkaTopicProperties;
 
-    public ProductsService(CategoryRepository categoryRepository, ProductsRepository productsRepository, ProductMapper productMapper, MongoTemplate mongoTemplate, JwtUtil jwtUtil, SellerDataRepository sellerDataRepository) {
+    public ProductsService(CategoryRepository categoryRepository, ProductsRepository productsRepository, ProductMapper productMapper, MongoTemplate mongoTemplate, JwtUtil jwtUtil, SellerDataRepository sellerDataRepository, KafkaEventProducer kafkaEventProducer, KafkaTopicProperties kafkaTopicProperties) {
         this.categoryRepository = categoryRepository;
         this.productsRepository = productsRepository;
         this.productMapper = productMapper;
         this.mongoTemplate = mongoTemplate;
         this.jwtUtil = jwtUtil;
         this.sellerDataRepository = sellerDataRepository;
+        this.kafkaEventProducer = kafkaEventProducer;
+        this.kafkaTopicProperties = kafkaTopicProperties;
+    }
+    public ResponseEntity<String>updateProductStatusById(String id,Long sellerId, Status status,Status changeStatus){
+        if(changeStatus.equals(Status.ACTIVE)){
+            throw new RuntimeException("Status Cant Be UPDATED TO aCTIVE ");
+        }
+        Product product=productsRepository.findByIdAndSellerIdAndProductStatus(id,sellerId,status).orElseThrow(()->new RuntimeException("Product with id not found/ seller is not available"));
+        product.setProductStatus(changeStatus);
+        productsRepository.save(product);
+        ProductsEvent productsEvent=new ProductsEvent();
+        productsEvent.setProductId(product.getId());
+        productsEvent.setProductStatus(product.getProductStatus());
+        productsEvent.setSellerId(product.getSellerId());
+        productsEvent.setShopId(product.getShopId());
+        productsEvent.setUpdateAt(product.getUpdatedAt());
+        productsEvent.setEventType(EventType.UPDATE);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProducts(),productsEvent);
+
+        return new ResponseEntity<>("Poduct Updated sucessfully" ,HttpStatus.OK);
+    }
+    public ResponseEntity <String>updateQuantityByProductAndSellerId(String productId,Long sellerId,Integer quantity){
+        if(quantity<1){
+            throw new RuntimeException("Quantity is invaild ");
+        }
+        Product product=productsRepository.findByIdAndSellerIdAndProductStatus(productId,sellerId,Status.ACTIVE).orElseThrow(()->new RuntimeException("Given data were wrong "));
+        product.setQuantity(quantity);
+        productsRepository.save(product);
+        ProductsEvent productsEvent=new ProductsEvent();
+        productsEvent.setProductId(product.getId());
+        productsEvent.setQuantity(product.getQuantity());
+        productsEvent.setShopId(product.getShopId());
+        productsEvent.setSellerId(product.getSellerId());
+        productsEvent.setProductStatus(product.getProductStatus());
+        productsEvent.setUpdateAt(product.getUpdatedAt());
+        productsEvent.setEventType(EventType.UPDATE);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProducts(),productsEvent);
+        return new ResponseEntity<>("Quantity Update Sucessfully ",HttpStatus.OK);
     }
 
-    public ResponseEntity<Page<ProductsDto>> getAllCategoryProductbyPage(String category,Integer pageno, Integer pagesize){
+    public ResponseEntity<Page<ProductsDto>> getAllCategoryProductbyPage(String category, Integer pageno, Integer pagesize){
         Pageable pageable= PageRequest.of(pageno,pagesize);
         Page<Product> productPage=productsRepository.findByCategoryPathContaining(category,pageable);
         Page<ProductsDto>productsDtoPage=productPage.map(entity->{
@@ -66,12 +112,27 @@ public class ProductsService {
     }
     public ResponseEntity<Product> createNewProduct(Product product, String token){
         Long sellerId=jwtUtil.extractSellerId(token);
-        if(!sellerId.equals(product.getSellerId()) && categoryRepository.findById(product.getCategoryId()).isEmpty() && sellerDataRepository.findBySellerIdAndShopIdAndStatus(product.getSellerId(),product.getShopId(),Status.APPROVED).isEmpty()){
-            throw new RuntimeException("Seller id Mismatch / Category With Id Not found / seller & Shop Don't have any permission ");
+        if(!sellerId.equals(product.getSellerId()) && product.getQuantity()<1 && categoryRepository.findById(product.getCategoryId()).isEmpty() && sellerDataRepository.findBySellerIdAndShopIdAndStatus(product.getSellerId(),product.getShopId(),Status.APPROVED).isEmpty()){
+            throw new RuntimeException("Seller id Mismatch / Category With Id Not found / Product quantity is less than 1 / seller & Shop Don't have any permission ");
         }
         product.setProductStatus(Status.ACTIVE);
 
-        return new ResponseEntity<>(productsRepository.save(product), HttpStatus.OK);
+        Product productdata=productsRepository.save(product);
+        ProductsEvent productsEvent=new ProductsEvent();
+        productsEvent.setProductId(productdata.getId());
+        productsEvent.setQuantity(productdata.getQuantity());
+        productsEvent.setShopId(productdata.getShopId());
+        productsEvent.setSellerId(productdata.getSellerId());
+        productsEvent.setProductStatus(productdata.getProductStatus());
+        productsEvent.setUpdateAt(productdata.getUpdatedAt());
+        productsEvent.setEventType(EventType.CREATE);
+        productsEvent.setImages(productdata.getImages());
+        productsEvent.setName(productdata.getName());
+        productsEvent.setColor(productdata.getColor());
+        productsEvent.setPrice(productdata.getPrice());
+        productsEvent.setOriginalPrice(productdata.getOriginalPrice());
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProducts(),productsEvent);
+        return new ResponseEntity<>(productdata, HttpStatus.OK);
     }
     public ResponseEntity<Page<ProductsDto>> getAllProductsbyPageForSeller(String token,Integer pageno, Integer pagesize){
 

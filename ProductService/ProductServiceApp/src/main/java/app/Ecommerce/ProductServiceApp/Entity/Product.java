@@ -33,6 +33,7 @@ public class Product {
     private String name;
     @NotBlank
     private String categoryId;
+
 //    private String subCategory;
     private List<String> images;
     private String color;
@@ -52,6 +53,7 @@ public class Product {
 //    private Double discountPercentage;
 
     private Boolean freeShipping;
+
     private Integer deliveryDays;
     @Indexed
     private String slug;

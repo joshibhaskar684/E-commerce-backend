@@ -1,4 +1,4 @@
-package app.auth.service.Producers;
+package app.Ecommerce.ProductServiceApp.Producers;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

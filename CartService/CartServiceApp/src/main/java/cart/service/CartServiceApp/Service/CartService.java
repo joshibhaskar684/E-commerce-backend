@@ -4,6 +4,8 @@ import cart.service.CartServiceApp.Entity.Cart;
 import cart.service.CartServiceApp.Entity.CartItem;
 import cart.service.CartServiceApp.Entity.CartSummary;
 import cart.service.CartServiceApp.Repository.CartRepository;
+import cart.service.CartServiceApp.Repository.ProductsdataSnapshotRepository;
+import com.ecommerce.commonlib.base_domains.Event.CreateCartEvent;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -15,9 +17,11 @@ import java.util.Optional;
 public class CartService {
 
     private CartRepository cartRepository;
+    private ProductsdataSnapshotRepository productsdataSnapshotRepository;
 
-    public CartService(CartRepository cartRepository) {
+    public CartService(CartRepository cartRepository, ProductsdataSnapshotRepository productsdataSnapshotRepository) {
         this.cartRepository = cartRepository;
+        this.productsdataSnapshotRepository = productsdataSnapshotRepository;
     }
 
     public Cart createCart(Long userId) {
@@ -60,9 +64,11 @@ public class CartService {
 
     public Cart addItem(Long userId, CartItem newItem) {
 
-
+if(!newItem.getProductId().equals(productsdataSnapshotRepository.findByProductId(newItem.getProductId()))){
+    throw new RuntimeException("Product not found");
+}
         Cart cart = cartRepository.findByUserId(userId)
-                .orElse(new Cart());
+                .orElse(createCart(userId));
 
         List<CartItem> items = cart.getItems();
 

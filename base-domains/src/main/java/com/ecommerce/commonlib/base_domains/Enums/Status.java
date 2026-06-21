@@ -2,6 +2,9 @@ package com.ecommerce.commonlib.base_domains.Enums;
 
 public enum Status {
     ACTIVE,
+    SUCCESS,
+    FAILED,
+    CANCELLED,
     INACTIVE,
     PENDING,
     APPROVED,

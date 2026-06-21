@@ -1,23 +1,20 @@
-package cart.service.CartServiceApp.Entity;
+package com.ecommerce.commonlib.base_domains.Event;
 
+import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document
-public class ProductsdataSnapshot {
-    @Id
-    private String id;
+@Data
+public class ProductsEvent {
+
 
     private List<String> images;
 
@@ -25,13 +22,16 @@ public class ProductsdataSnapshot {
     private BigDecimal price;
     private BigDecimal originalPrice;
     private String name;
+
+    private Status sellerStatus;
+    private Status shopStatus;
+
+    private String productId;
+    private Integer quantity;
+    private String message;
+    private EventType eventType;
     private Long sellerId;
     private Long ShopId;
-    private Status ShopStaus;
-    private Status SellerStatus;
-    private String productId;
     private Status productStatus;
     private Instant updateAt;
-    private Integer quantity;
-
 }
