@@ -102,8 +102,7 @@ public interface ProductsdataSnapshotRepository
     =========================================================
      */
 
-    List<ProductsdataSnapshot>
-    findByUpdatedAtAfter(Instant updatedAt);
+//    List<ProductsdataSnapshot>findByUpdatedAtAfter(Instant updatedAt);
 
     List<ProductsdataSnapshot>
     findByUpdatedAtBetween(

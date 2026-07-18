@@ -192,13 +192,13 @@ public class ProductsdataSnapshotService {
     =========================================================
      */
 
-    public List<ProductsdataSnapshot>
-    getRecentlyUpdatedProducts(
-            Instant updatedAt
-    ) {
-
-        return repository.findByUpdatedAtAfter(updatedAt);
-    }
+//    public List<ProductsdataSnapshot>
+//    getRecentlyUpdatedProducts(
+//            Instant updatedAt
+//    ) {
+//
+//        return repository.findByUpdatedAtAfter(updatedAt);
+//    }
 
     public List<ProductsdataSnapshot>
     getProductsBetweenDates(
@@ -347,21 +347,21 @@ public class ProductsdataSnapshotService {
     =========================================================
      */
 
-    public List<ProductsdataSnapshot>
-    searchProducts(
-            Long sellerId,
-            Long shopId,
-            String productStatus,
-            Integer minQty
-    ) {
-
-        return repository.searchProducts(
-                sellerId,
-                shopId,
-                productStatus,
-                minQty
-        );
-    }
+//    public List<ProductsdataSnapshot>
+//    searchProducts(
+//            Long sellerId,
+//            Long shopId,
+//            String productStatus,
+//            Integer minQty
+//    ) {
+//
+//        return repository.searchProducts(
+//                sellerId,
+//                shopId,
+//                productStatus,
+//                minQty
+//        );
+//    }
 
     /*
     =========================================================

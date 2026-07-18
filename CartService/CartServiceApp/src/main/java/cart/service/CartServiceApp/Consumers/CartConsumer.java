@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CartConsumer {
+
     private CartService cartService;
 
     private static final Logger LOGGER= LoggerFactory.getLogger(CartConsumer.class);

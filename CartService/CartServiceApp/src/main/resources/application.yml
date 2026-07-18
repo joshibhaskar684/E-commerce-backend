@@ -5,3 +5,7 @@ spring:
       shop: shop-events
       cart: cart-events
       order: order-events
+      admin: admin-events
+      product: product-events
+      payment: payment-events
+      notification: notification-events

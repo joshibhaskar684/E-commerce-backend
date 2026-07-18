@@ -35,9 +35,9 @@ public class ConsumerHelperForProductEventConsumer {
         productsdataSnapshot.setQuantity(event.getQuantity());
         productsdataSnapshot.setSellerId(event.getSellerId());
         productsdataSnapshot.setShopId(event.getShopId());
-        productsdataSnapshot.setShopStaus(event.getShopStatus());
+        productsdataSnapshot.setShopStatus(event.getShopStatus());
         productsdataSnapshot.setSellerStatus(event.getSellerStatus());
-        productsdataSnapshot.setUpdateAt(event.getUpdateAt());
+        productsdataSnapshot.setUpdatedAt(event.getUpdateAt());
         productsdataSnapshot.setProductStatus(event.getProductStatus());
         productsdataSnapshotRepository.save(productsdataSnapshot);
     }
@@ -48,7 +48,7 @@ public class ConsumerHelperForProductEventConsumer {
             productsdataSnapshot.setQuantity(event.getQuantity());
         }
         productsdataSnapshot.setProductStatus(event.getProductStatus());
-        productsdataSnapshot.setUpdateAt(event.getUpdateAt());
+        productsdataSnapshot.setUpdatedAt(event.getUpdateAt());
         productsdataSnapshotRepository.save(productsdataSnapshot);
 
     }

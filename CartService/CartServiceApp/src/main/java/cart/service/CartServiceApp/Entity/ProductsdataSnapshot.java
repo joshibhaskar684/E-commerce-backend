@@ -26,12 +26,12 @@ public class ProductsdataSnapshot {
     private BigDecimal originalPrice;
     private String name;
     private Long sellerId;
-    private Long ShopId;
-    private Status ShopStaus;
-    private Status SellerStatus;
+    private Long shopId;
+    private Status shopStatus;
+    private Status sellerStatus;
     private String productId;
     private Status productStatus;
-    private Instant updateAt;
+    private Instant updatedAt;
     private Integer quantity;
 
 }

@@ -22,7 +22,7 @@ public class ProductEventConsumer {
     }
 
 
-    @KafkaListener(topics = "${spring.kafka.topics.products}", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "${spring.kafka.topics.product}", groupId = "${spring.kafka.consumer.group-id}")
     @RetryableTopic(attempts = "4")
     public void consume(ProductsEvent event) throws Exception {
 
