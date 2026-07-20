@@ -23,10 +23,10 @@ public class CartController {
 
     @GetMapping
     public Cart getCart(@RequestHeader("Authorization") String authHeader ) {
+
         String token=authHeader.substring(7);
 
         Long userId = jwtUtil.extractUserId(token);
-
         return cartService.getCart(userId);
     }
 

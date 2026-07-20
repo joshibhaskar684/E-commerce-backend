@@ -1,19 +1,26 @@
-version: '3.8'
-
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: quicksin-redis
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   kafka:
     image: apache/kafka:4.1.2
     container_name: kafka
     ports:
       - "9092:9092"
-
     environment:
-      # ===== KRaft Core Config =====
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
 
-      # ===== Listeners =====
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
 
@@ -21,11 +28,11 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
-      # IMPORTANT for dev
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
+    networks:
+      - internal
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
@@ -33,22 +40,21 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
-
     environment:
-      # ===== Cluster Config =====
       - node.name=elasticsearch
       - cluster.name=es-docker-cluster
       - discovery.type=single-node
-
-      # ===== Security (disabled for local dev) =====
       - xpack.security.enabled=false
-
-      # ===== JVM Memory =====
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
-
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    networks:
+      - internal
 
 volumes:
   es_data:
+
+networks:
+  internal:
+    driver: bridge
 

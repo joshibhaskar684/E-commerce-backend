@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                                 "/", "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/oauth2/**",
+                                "/cart/**",
                                 "/error",
                                 "/auth/**"
                         ).permitAll()
