@@ -13,6 +13,9 @@ import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Event.CreateCartEvent;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -80,22 +83,81 @@ public class MyUserServices implements UserDetailsService {
         return String.valueOf(otp);
     }
 
-    public ResponseEntity<Map<String,String>> findUserByJwtMap(String token) throws Exception{
-        String email=jwtUtil.extractUsername(token);
-        Optional<UserDetailsEntity> userDetails=usersRepository.findByEmail(email);
-        Map<String,String>userdata=new HashMap<>();
+//    redis applied with cachable and evict
+
+//    @CachePut(value = "users", key = "#email")
+//    public Map<String,String> updateUser(...) {
+//
+
+//    UserDetailsEntity user =new UserDetailsEntity();
+//    Map<String,String> cacheData = new HashMap<>();
+//
+//    cacheData.put("Name", user.getName());
+//    cacheData.put("Email", user.getEmail());
+//    cacheData.put("Mobile", user.getMobileno());
+//    cacheData.put("SocialLogin", user.getProvider());
+//    }
+
+
+
+@CacheEvict(value = "users", key = "#email")
+public void updateUser(String email, Signupdto dto) {
+
+
+    UserDetailsEntity user =new UserDetailsEntity();
+    Map<String,String> cacheData = new HashMap<>();
+
+    cacheData.put("Name", user.getName());
+    cacheData.put("Email", user.getEmail());
+    cacheData.put("Mobile", user.getMobileno());
+    cacheData.put("SocialLogin", user.getProvider());
+}
+
+
+    @Cacheable(value = "users", key = "#email")
+    public Map<String, String> getUserProfile(String email) {
+
+        Optional<UserDetailsEntity> userDetails =
+                usersRepository.findByEmail(email);
+
         if(userDetails.isEmpty()){
-            return new ResponseEntity<>(userdata, HttpStatus.NOT_FOUND);
+            throw new RuntimeException("User not found");
         }
-        userdata.put("Name",userDetails.get().getName());
-        userdata.put("Email",userDetails.get().getEmail());
 
-        userdata.put("Mobile",userDetails.get().getMobileno());
+        Map<String,String> userdata = new HashMap<>();
 
-        userdata.put("SocialLogin",userDetails.get().getProvider());
+        userdata.put("Name", userDetails.get().getName());
+        userdata.put("Email", userDetails.get().getEmail());
+        userdata.put("Mobile", userDetails.get().getMobileno());
+        userdata.put("SocialLogin", userDetails.get().getProvider());
 
-        return new ResponseEntity<>(userdata,HttpStatus.OK);
+        return userdata;
     }
+    public ResponseEntity<Map<String,String>> findUserByJwtMap(String token) {
+
+        String email = jwtUtil.extractUsername(token);
+
+        Map<String,String> user = getUserProfile(email);
+
+        return ResponseEntity.ok(user);
+    }
+//    public ResponseEntity<Map<String,String>> findUserByJwtMap(String token) throws Exception{
+//        String email=jwtUtil.extractUsername(token);
+//        Optional<UserDetailsEntity> userDetails=usersRepository.findByEmail(email);
+//        Map<String,String>userdata=new HashMap<>();
+//        if(userDetails.isEmpty()){
+//            return new ResponseEntity<>(userdata, HttpStatus.NOT_FOUND);
+//        }
+//        userdata.put("Name",userDetails.get().getName());
+//        userdata.put("Email",userDetails.get().getEmail());
+//
+//        userdata.put("Mobile",userDetails.get().getMobileno());
+//
+//        userdata.put("SocialLogin",userDetails.get().getProvider());
+//
+//        return new ResponseEntity<>(userdata,HttpStatus.OK);
+//    }
+
     public String changeRoleToSeller(String email){
         UserDetailsEntity seller=usersRepository.findByEmail(email).get();
         if (seller.getRole().equals("ADMIN")){
