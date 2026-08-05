@@ -119,7 +119,15 @@
 		<!-- API -->
 
 
-		<!-- IMPLEMENTATION (THIS IS WHAT YOU ARE MISSING) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
+
+
+
+        <!-- IMPLEMENTATION (THIS IS WHAT YOU ARE MISSING) -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>

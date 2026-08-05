@@ -28,8 +28,10 @@ public class Product {
 
     @Id
     private String id;
+    @Indexed
     private String brand;
     @NotNull
+    @Indexed
     private String name;
     @NotBlank
     private String categoryId;
