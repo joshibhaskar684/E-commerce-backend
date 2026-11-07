@@ -3,6 +3,7 @@ package cart.service.CartServiceApp.Service;
 import cart.service.CartServiceApp.Entity.Cart;
 import cart.service.CartServiceApp.Entity.CartItem;
 import cart.service.CartServiceApp.Entity.CartSummary;
+import cart.service.CartServiceApp.Entity.ProductsdataSnapshot;
 import cart.service.CartServiceApp.Repository.CartRepository;
 import cart.service.CartServiceApp.Repository.ProductsdataSnapshotRepository;
 import com.ecommerce.commonlib.base_domains.Event.CreateCartEvent;
@@ -64,9 +65,15 @@ public class CartService {
 
     public Cart addItem(Long userId, CartItem newItem) {
 
-if(!newItem.getProductId().equals(productsdataSnapshotRepository.findByProductId(newItem.getProductId()))){
-    throw new RuntimeException("Product not found");
-}
+        Optional<ProductsdataSnapshot> product =
+                productsdataSnapshotRepository.findByProductId(
+                        newItem.getProductId()
+                );
+
+        if (product.isEmpty()) {
+            throw new RuntimeException("Product not found");
+        }
+
         Cart cart = cartRepository.findByUserId(userId)
                 .orElse(createCart(userId));
 
@@ -84,7 +91,6 @@ if(!newItem.getProductId().equals(productsdataSnapshotRepository.findByProductId
             items.add(newItem);
         }
 
-        // 🔥 recalculate summary
         CartSummary summary = calculateSummary(items);
         cart.setSummary(summary);
 
@@ -106,8 +112,15 @@ if(!newItem.getProductId().equals(productsdataSnapshotRepository.findByProductId
 
     public Cart updateQuantity(Long userId, String productId, int quantity) {
 
-        Cart cart = getCart(userId);
+        ProductsdataSnapshot productsdataSnapshot=productsdataSnapshotRepository.findByProductId(productId).orElseThrow(()->new RuntimeException("Product with id didn't exist "));
 
+            Cart cart = getCart(userId);
+
+
+
+            if (quantity > productsdataSnapshot.getQuantity()) {
+                throw new RuntimeException("Insufficient product stock");
+            }
         for (CartItem item : cart.getItems()) {
             if (item.getProductId().equals(productId)) {
                 item.setQuantity(quantity);

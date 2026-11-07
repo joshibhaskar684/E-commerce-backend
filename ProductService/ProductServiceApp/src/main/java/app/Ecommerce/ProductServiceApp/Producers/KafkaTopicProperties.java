@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "spring.kafka.topics")
 public class KafkaTopicProperties {
-    private String products;
+    private String product;
     private String seller;
     private String shop;
     private String cart;

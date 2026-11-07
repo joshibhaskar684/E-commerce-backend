@@ -34,7 +34,12 @@ public class CartController {
     // 2. ADD ITEM TO CART
     // -------------------------
     @PostMapping("/item/add")
-    public Cart addItem(@RequestBody CartItemRequest request,@RequestHeader("Authorization") String authHeader ) {
+    public Cart addItem(@RequestBody CartItemRequest request, @RequestHeader("Authorization") String authHeader ) {
+
+        System.out.println(request);
+
+        System.out.println(request);
+        System.out.println(request);
 
         Long userId = SecurityUtil.getCurrentUserId();
 

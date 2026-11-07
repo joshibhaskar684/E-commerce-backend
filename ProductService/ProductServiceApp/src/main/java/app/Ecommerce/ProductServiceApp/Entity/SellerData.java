@@ -19,3 +19,4 @@ public class SellerData {
     private Status status;
    
 }
+

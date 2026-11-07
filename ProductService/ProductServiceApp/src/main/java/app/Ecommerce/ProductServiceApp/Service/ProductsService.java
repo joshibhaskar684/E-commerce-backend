@@ -69,7 +69,7 @@ public class ProductsService {
         productsEvent.setShopId(product.getShopId());
         productsEvent.setUpdateAt(product.getUpdatedAt());
         productsEvent.setEventType(EventType.UPDATE);
-        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProducts(),productsEvent);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProduct(),productsEvent);
 
         return new ResponseEntity<>("Poduct Updated sucessfully" ,HttpStatus.OK);
     }
@@ -88,7 +88,7 @@ public class ProductsService {
         productsEvent.setProductStatus(product.getProductStatus());
         productsEvent.setUpdateAt(product.getUpdatedAt());
         productsEvent.setEventType(EventType.UPDATE);
-        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProducts(),productsEvent);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProduct(),productsEvent);
         return new ResponseEntity<>("Quantity Update Sucessfully ",HttpStatus.OK);
     }
 
@@ -131,7 +131,7 @@ public class ProductsService {
         productsEvent.setColor(productdata.getColor());
         productsEvent.setPrice(productdata.getPrice());
         productsEvent.setOriginalPrice(productdata.getOriginalPrice());
-        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProducts(),productsEvent);
+        kafkaEventProducer.sendEvent(kafkaTopicProperties.getProduct(),productsEvent);
         return new ResponseEntity<>(productdata, HttpStatus.OK);
     }
     public ResponseEntity<Page<ProductsDto>> getAllProductsbyPageForSeller(String token,Integer pageno, Integer pagesize){
