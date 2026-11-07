@@ -2,6 +2,7 @@ package app.auth.service.Controller;
 
 
 import app.auth.service.DTO.RejectRequest;
+import app.auth.service.DTO.SellerApplicationResponse;
 import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -57,6 +59,13 @@ return new ResponseEntity<>(sellerService.getSellerProfile(token),HttpStatus.OK)
         return new ResponseEntity<>(sellerService.CreateSeller(seller,token), HttpStatus.OK);
     }
 
+    @PostMapping("/seller/find/applications")
+    public ResponseEntity<List<SellerApplicationResponse>> SellerApplication(@RequestHeader("Authorization") String authHeader) throws Exception {
+        String token=authHeader.substring(7);
+        return new ResponseEntity<>(sellerService.checkSellerApplication(token), HttpStatus.OK);
+    }
+
+
 
 
     @PostMapping("/seller/approve/seller/{id}")
@@ -64,6 +73,9 @@ return new ResponseEntity<>(sellerService.getSellerProfile(token),HttpStatus.OK)
         String token=authHeader.substring(7);
         return new ResponseEntity<>(sellerService.approveSeller(id,token), HttpStatus.OK);
     }
+
+
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/seller/unapprove/seller/page")
     public ResponseEntity <Page<SellerDto>> unapproveSellerList(@RequestParam Integer pageno,@RequestParam Integer pagesize){

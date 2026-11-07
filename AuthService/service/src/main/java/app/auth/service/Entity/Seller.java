@@ -21,9 +21,10 @@ public class Seller {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserDetailsEntity user;
+
 
     @ManyToOne
     @JoinColumn(name = "admin_data")

@@ -1,6 +1,7 @@
 package app.auth.service.Service;
 
 import app.auth.service.DTO.RejectRequest;
+import app.auth.service.DTO.SellerApplicationResponse;
 import app.auth.service.DTO.SellerDto;
 import app.auth.service.DTO.SellerProfileDto;
 import app.auth.service.Entity.Seller;
@@ -14,6 +15,8 @@ import app.auth.service.Repository.SellerRepository;
 import com.ecommerce.commonlib.base_domains.Enums.EventType;
 import com.ecommerce.commonlib.base_domains.Enums.Status;
 import com.ecommerce.commonlib.base_domains.Event.*;
+import org.apache.kafka.common.protocol.types.Field;
+import org.apache.kafka.common.protocol.types.Struct;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -72,23 +76,65 @@ public class SellerService {
         return sellerRepository.getReferenceById(id);
     }
 
-    public Map<String ,String> checkSellerApplication(String token) throws Exception {
-        Map<String ,String> data=new HashMap<>();
-        UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);
-        Seller seller=sellerRepository.findByUser(userDetails).get();
-        if (seller.getStatus() == Status.PENDING) {
-            data.put("Status",seller.getStatus().toString());
-            data.put("Reason","It May Take 24hr-48hr.........");
-        }
-        else if(seller.getStatus()==Status.REJECTED){
-            data.put("Status",seller.getStatus().toString());
-            data.put("Reason",seller.getRejectionReason());
-        }
-        else{
-            data.put("Status",seller.getStatus().toString());
-        }
-        return data;
+
+    public List<SellerApplicationResponse> checkSellerApplication(
+            String token) throws Exception {
+
+        UserDetailsEntity userDetails =
+                myUserServices.findDetailsByJwt(token);
+
+        List<Seller> sellers =
+                sellerRepository.findAllByUserOrderByCreatedAtDesc(userDetails);
+
+        return sellers.stream()
+                .map(seller -> new SellerApplicationResponse(
+                        seller.getId(),
+                        seller.getStatus().toString(),
+                        seller.getStatus() == Status.REJECTED
+                                ? seller.getRejectionReason()
+                                : seller.getStatus() == Status.PENDING
+                                ? "It may take 24hr-48hr."
+                                : null,
+                        seller.getCreatedAt()
+                ))
+                .toList();
     }
+
+
+
+    public void submitSellerApplication(
+            String token,
+            Seller seller) throws Exception {
+
+        UserDetailsEntity userDetails =
+                myUserServices.findDetailsByJwt(token);
+
+        boolean isApproved = sellerRepository.existsByUserAndStatus(
+                userDetails, Status.APPROVED
+        );
+
+        if (isApproved) {
+            throw new RuntimeException(
+                    "Your seller application is already approved. You cannot register again."
+            );
+        }
+
+        boolean isPending = sellerRepository.existsByUserAndStatus(
+                userDetails, Status.PENDING
+        );
+
+        if (isPending) {
+            throw new RuntimeException(
+                    "Your seller application is already pending."
+            );
+        }
+
+        seller.setUser(userDetails);
+        seller.setStatus(Status.PENDING);
+
+        sellerRepository.save(seller);
+    }
+
 
     public String CreateSeller(Seller seller, String token) throws Exception {
         UserDetailsEntity userDetails=myUserServices.findDetailsByJwt(token);

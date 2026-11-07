@@ -16,4 +16,11 @@ public interface SellerRepository extends JpaRepository<Seller,Long> {
     Page<Seller> findAllByStatus(Status status, Pageable pageable);
     List<Seller> findAllByStatus(Status status);
     long countByStatus(Status status);
+
+    List<Seller> findAllByUserOrderByCreatedAtDesc(UserDetailsEntity user);
+
+    boolean existsByUserAndStatus(
+            UserDetailsEntity user,
+            Status status
+    );
 }
